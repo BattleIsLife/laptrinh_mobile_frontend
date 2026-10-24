@@ -5,7 +5,7 @@ class ApiConfig {
   /// Default Base URL for the Node.js backend.
   /// For Android emulator, use: 'http://10.0.2.2:3000'
   /// For iOS simulator, Desktop or Web, use: 'http://localhost:3000'
-  static const String defaultBaseUrl = 'http://localhost:3000';
+  static const String defaultBaseUrl = 'http://localhost:5001';
 
   /// Active base URL. Can be modified at runtime or injected via environment variables.
   static String baseUrl = defaultBaseUrl;
