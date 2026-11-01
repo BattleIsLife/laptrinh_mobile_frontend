@@ -18,6 +18,14 @@ abstract class AuthService {
 
   /// Authenticates a user with email and password.
   Future<AuthResult> login({required String email, required String password});
+
+  /// Registers a new user with full_name, email, phone, and password.
+  Future<void> register({
+    required String fullName,
+    required String email,
+    required String phone,
+    required String password,
+  });
 }
 
 /// Real HTTP implementation connecting to Node.js backend via [ApiClient].
@@ -40,6 +48,25 @@ class HttpAuthService implements AuthService {
     );
 
     return AuthResult.fromJson(response);
+  }
+
+  @override
+  Future<void> register({
+    required String fullName,
+    required String email,
+    required String phone,
+    required String password,
+  }) async {
+    // Gửi request POST /api/auth/register với 4 trường chuẩn backend yêu cầu
+    await _apiClient.post(
+      '/api/auth/register', // Hoặc thay bằng ApiConfig.registerEndpoint nếu nhóm có định nghĩa sẵn
+      body: {
+        'full_name': fullName,
+        'email': email,
+        'phone': phone,
+        'password': password,
+      },
+    );
   }
 }
 
@@ -84,5 +111,23 @@ class MockAuthService implements AuthService {
     }
 
     throw UnauthorizedException('Tài khoản không tồn tại hoặc mật khẩu sai.');
+  }
+
+  @override
+  Future<void> register({
+    required String fullName,
+    required String email,
+    required String phone,
+    required String password,
+  }) async {
+    // Giả lập độ trễ mạng khi đăng ký
+    if (simulatedDelay > Duration.zero) {
+      await Future.delayed(simulatedDelay);
+    }
+
+    // Giả lập lỗi trùng email hoặc số điện thoại nếu muốn test
+    if (email == 'exists@example.com') {
+     throw ApiException('Số điện thoại hoặc Email này đã được sử dụng');
+    }
   }
 }

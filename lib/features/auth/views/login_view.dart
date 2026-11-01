@@ -4,7 +4,9 @@ import '../../../core/config/api_config.dart';
 import '../../../core/theme/app_theme.dart';
 import '../controllers/auth_controller.dart';
 import 'components/login_form.dart';
+import 'register_view.dart'; 
 import 'welcome_view.dart';
+// Import màn hình đăng ký của bạn vào đây (nếu có, ví dụ: import 'register_view.dart';)
 
 /// Main authentication screen.
 ///
@@ -51,6 +53,7 @@ class _LoginViewState extends State<LoginView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.backgroundColor, // Giữ màu nền chuẩn của AppTheme
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -67,9 +70,9 @@ class _LoginViewState extends State<LoginView> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Header Section
+                      // Header Section (Đã cập nhật logo và tiêu đề khớp mẫu thiết kế)
                       _buildHeader(),
-                      const SizedBox(height: 28),
+                      const SizedBox(height: 24),
 
                       // Error Banner (if any)
                       if (_controller.errorMessage != null) ...[
@@ -77,12 +80,12 @@ class _LoginViewState extends State<LoginView> {
                         const SizedBox(height: 20),
                       ],
 
-                      // Login Form Component
+                      // Login Form Component (Card trắng bọc form)
                       Card(
                         elevation: 0,
                         color: AppTheme.surfaceColor,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(24), // Bo tròn mềm mại hơn
                           side: const BorderSide(color: AppTheme.borderColor),
                         ),
                         child: Padding(
@@ -95,7 +98,38 @@ class _LoginViewState extends State<LoginView> {
                       ),
                       const SizedBox(height: 24),
 
-                      // Environment & Test Credentials Helper Box
+                      // Chuyển hướng sang trang Đăng ký ngay
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            'Chưa có tài khoản? ',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: AppTheme.textSecondary,
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => RegisterView(controller: _controller)),
+    );
+                            },
+                            child: const Text(
+                              'Đăng ký ngay',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: AppTheme.primaryColor,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Environment & Test Credentials Helper Box (Giữ nguyên phần dev guide của nhóm)
                       _buildHelperCard(),
                     ],
                   );
@@ -111,34 +145,70 @@ class _LoginViewState extends State<LoginView> {
   Widget _buildHeader() {
     return Column(
       children: [
+        // Logo bảo mật tín dụng chuẩn như hình thiết kế
         Container(
-          width: 64,
-          height: 64,
+          width: 72,
+          height: 72,
           decoration: BoxDecoration(
-            color: AppTheme.primaryColor.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: const Icon(
-            Icons.lock_person_outlined,
-            size: 36,
             color: AppTheme.primaryColor,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                blurRadius: 12,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              const Icon(
+                Icons.shield_rounded,
+                size: 38,
+                color: Colors.white,
+              ),
+              Positioned(
+                right: 8,
+                bottom: 8,
+                child: Container(
+                  padding: const EdgeInsets.all(2),
+                  decoration: const BoxDecoration(
+                    color: AppTheme.accentColor,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.trending_up,
+                    size: 12,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 20),
         const Text(
-          'Đăng nhập tài khoản',
+          'Chào mừng trở lại!',
           style: TextStyle(
-            fontSize: 24,
+            fontSize: 26,
             fontWeight: FontWeight.bold,
             color: AppTheme.textPrimary,
           ),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 8),
-        const Text(
-          'Nhập email và mật khẩu của bạn để tiếp tục',
-          style: TextStyle(fontSize: 14, color: AppTheme.textSecondary),
-          textAlign: TextAlign.center,
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.0),
+          child: Text(
+            'Đăng nhập để theo dõi sức khỏe tín dụng và quản lý danh mục tài chính của bạn.',
+            style: TextStyle(
+              fontSize: 14,
+              color: AppTheme.textSecondary,
+              height: 1.4,
+            ),
+            textAlign: TextAlign.center,
+          ),
         ),
       ],
     );
@@ -203,7 +273,7 @@ class _LoginViewState extends State<LoginView> {
         children: [
           Row(
             children: [
-              Icon(Icons.info_outline, size: 16, color: AppTheme.textSecondary),
+              const Icon(Icons.info_outline, size: 16, color: AppTheme.textSecondary),
               const SizedBox(width: 8),
               const Expanded(
                 child: Text(

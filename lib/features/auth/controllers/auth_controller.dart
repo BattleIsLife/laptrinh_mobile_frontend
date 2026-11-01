@@ -79,6 +79,7 @@ class AuthController extends ChangeNotifier {
 
     try {
       // 3. Delegate to Service Layer
+      // Lưu ý: Nếu backend nhận key là username, bạn có thể truyền email vào đây hoặc tùy chỉnh trong auth_service
       final authResult = await _authService.login(
         email: email.trim(),
         password: password,
@@ -98,6 +99,75 @@ class AuthController extends ChangeNotifier {
       return false;
     } catch (e) {
       _errorMessage = 'Đã xảy ra lỗi không xác định. Vui lòng thử lại sau.';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Executes user registration.
+  ///
+  /// Nhận vào 4 trường dữ liệu theo đúng tài liệu API Backend:
+  /// full_name, email, phone, password.
+  Future<bool> register({
+    required String fullName,
+    required String email,
+    required String phone,
+    required String password,
+  }) async {
+    // 1. Validate cơ bản
+    final emailError = validateEmail(email);
+    if (emailError != null) {
+      _errorMessage = emailError;
+      notifyListeners();
+      return false;
+    }
+
+    final passwordError = validatePassword(password);
+    if (passwordError != null) {
+      _errorMessage = passwordError;
+      notifyListeners();
+      return false;
+    }
+
+    if (fullName.trim().isEmpty) {
+      _errorMessage = 'Vui lòng nhập họ và tên đầy đủ.';
+      notifyListeners();
+      return false;
+    }
+
+    if (phone.trim().isEmpty) {
+      _errorMessage = 'Vui lòng nhập số điện thoại di động.';
+      notifyListeners();
+      return false;
+    }
+
+    // 2. Set loading state
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      // 3. Gọi service đăng ký (Bạn nhớ định nghĩa hàm register trong AuthService nhé)
+      // Tạm thời nếu AuthService chưa có hàm register, bạn có thể gọi API tương ứng ở đây
+      await _authService.register(
+        fullName: fullName.trim(),
+        email: email.trim(),
+        phone: phone.trim(),
+        password: password,
+      );
+
+      _isLoading = false;
+      _errorMessage = null;
+      notifyListeners();
+      return true;
+    } on ApiException catch (e) {
+      _errorMessage = e.message;
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _errorMessage = 'Đã xảy ra lỗi đăng ký. Vui lòng thử lại sau.';
       _isLoading = false;
       notifyListeners();
       return false;
