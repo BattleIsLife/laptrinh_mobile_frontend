@@ -37,7 +37,7 @@ class RequestTimeoutException extends ApiException {
 /// Thrown on HTTP 401 Unauthorized errors.
 class UnauthorizedException extends ApiException {
   UnauthorizedException([
-    super.message = 'Email hoặc mật khẩu không chính xác.',
+    super.message = 'Phiên đăng nhập hết hạn hoặc không có quyền truy cập.',
   ]) : super(statusCode: 401);
 }
 
@@ -50,7 +50,7 @@ class ServerException extends ApiException {
 }
 
 /// Generic HTTP API Client with centralized timeout, error handling,
-/// and header management.
+/// and header management. Supports GET, POST, PATCH, and DELETE.
 class ApiClient {
   final http.Client _client;
 
@@ -62,16 +62,54 @@ class ApiClient {
     'Accept': 'application/json',
   };
 
+  /// Builds request headers including Bearer token if provided.
+  Map<String, String> _buildHeaders(
+    Map<String, String>? headers,
+    String? token,
+  ) {
+    final merged = {...defaultHeaders, ...?headers};
+    if (token != null && token.isNotEmpty) {
+      merged['authorization'] = 'Bearer $token';
+    }
+    return merged;
+  }
+
+  /// Sends a GET request to the specified [endpoint].
+  Future<Map<String, dynamic>> get(
+    String endpoint, {
+    Map<String, dynamic>? queryParams,
+    Map<String, String>? headers,
+    String? token,
+  }) async {
+    final uri = ApiConfig.getUri(endpoint, queryParams);
+    final mergedHeaders = _buildHeaders(headers, token);
+
+    try {
+      final response = await _client
+          .get(uri, headers: mergedHeaders)
+          .timeout(ApiConfig.connectTimeout);
+
+      return _processResponse(response);
+    } on SocketException {
+      throw NetworkException();
+    } on http.ClientException {
+      throw NetworkException();
+    } on TimeoutException {
+      throw RequestTimeoutException();
+    } on FormatException {
+      throw ApiException('Phản hồi từ máy chủ không đúng định dạng JSON.');
+    }
+  }
+
   /// Sends a POST request to the specified [endpoint].
-  ///
-  /// Sensitive data (passwords, tokens) is never written to logs.
   Future<Map<String, dynamic>> post(
     String endpoint, {
     Map<String, dynamic>? body,
     Map<String, String>? headers,
+    String? token,
   }) async {
     final uri = ApiConfig.getUri(endpoint);
-    final mergedHeaders = {...defaultHeaders, ...?headers};
+    final mergedHeaders = _buildHeaders(headers, token);
 
     try {
       final response = await _client
@@ -81,6 +119,73 @@ class ApiClient {
             body: body != null ? jsonEncode(body) : null,
           )
           .timeout(ApiConfig.connectTimeout);
+
+      return _processResponse(response);
+    } on SocketException {
+      throw NetworkException();
+    } on http.ClientException {
+      throw NetworkException();
+    } on TimeoutException {
+      throw RequestTimeoutException();
+    } on FormatException {
+      throw ApiException('Phản hồi từ máy chủ không đúng định dạng JSON.');
+    }
+  }
+
+  /// Sends a PATCH request to the specified [endpoint].
+  Future<Map<String, dynamic>> patch(
+    String endpoint, {
+    Map<String, dynamic>? body,
+    Map<String, String>? headers,
+    String? token,
+  }) async {
+    final uri = ApiConfig.getUri(endpoint);
+    final mergedHeaders = _buildHeaders(headers, token);
+
+    try {
+      final response = await _client
+          .patch(
+            uri,
+            headers: mergedHeaders,
+            body: body != null ? jsonEncode(body) : null,
+          )
+          .timeout(ApiConfig.connectTimeout);
+
+      return _processResponse(response);
+    } on SocketException {
+      throw NetworkException();
+    } on http.ClientException {
+      throw NetworkException();
+    } on TimeoutException {
+      throw RequestTimeoutException();
+    } on FormatException {
+      throw ApiException('Phản hồi từ máy chủ không đúng định dạng JSON.');
+    }
+  }
+
+  /// Sends a DELETE request to the specified [endpoint].
+  /// Supports optional body and queryParams.
+  Future<Map<String, dynamic>> delete(
+    String endpoint, {
+    Map<String, dynamic>? body,
+    Map<String, dynamic>? queryParams,
+    Map<String, String>? headers,
+    String? token,
+  }) async {
+    final uri = ApiConfig.getUri(endpoint, queryParams);
+    final mergedHeaders = _buildHeaders(headers, token);
+
+    try {
+      final request = http.Request('DELETE', uri);
+      request.headers.addAll(mergedHeaders);
+      if (body != null) {
+        request.body = jsonEncode(body);
+      }
+
+      final streamedResponse = await _client
+          .send(request)
+          .timeout(ApiConfig.connectTimeout);
+      final response = await http.Response.fromStream(streamedResponse);
 
       return _processResponse(response);
     } on SocketException {
@@ -107,6 +212,18 @@ class ApiClient {
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       if (responseData is Map<String, dynamic>) {
+        final status = responseData['status'];
+        // Backend doc states: "status": "false" on error
+        if (status == 'false' || status == false) {
+          final message =
+              _extractErrorMessage(responseData) ??
+              'Yêu cầu xử lý không thành công.';
+          throw ApiException(
+            message,
+            statusCode: response.statusCode,
+            responseData: responseData,
+          );
+        }
         return responseData;
       }
       return {'data': responseData};

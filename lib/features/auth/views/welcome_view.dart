@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_button.dart';
 import '../controllers/auth_controller.dart';
+import 'assets_view.dart';
+import 'credit_accounts_view.dart';
 
 /// Simple welcome / home screen displayed upon successful authentication.
 class WelcomeView extends StatelessWidget {
@@ -109,13 +111,149 @@ class WelcomeView extends StatelessWidget {
                             ? maskedToken
                             : 'Không có',
                       ),
-                      const SizedBox(height: 28),
+                      const SizedBox(height: 24),
+
+                      // Feature Entry 1: Quản lý tài khoản tín dụng
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryColor.withValues(alpha: 0.06),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: AppTheme.primaryColor.withValues(alpha: 0.2),
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            const Row(
+                              children: [
+                                Icon(
+                                  Icons.credit_card,
+                                  color: AppTheme.primaryColor,
+                                ),
+                                SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    'Quản lý tài khoản tín dụng',
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTheme.primaryColor,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            const Text(
+                              'Xem danh sách tài khoản, thêm, sửa, đóng tài khoản và tạo yêu cầu mở tín dụng.',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: AppTheme.textSecondary,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            AppButton(
+                              text: 'Tài khoản tín dụng',
+                              icon: Icons.arrow_forward,
+                              onPressed: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => CreditAccountsView(
+                                      token: controller.token,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Feature Entry 2: Quản lý tài sản
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF10B981).withValues(alpha: 0.06),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: const Color(0xFF10B981).withValues(alpha: 0.25),
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            const Row(
+                              children: [
+                                Icon(
+                                  Icons.account_balance_wallet_rounded,
+                                  color: Color(0xFF10B981),
+                                ),
+                                SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    'Quản lý tài sản cá nhân',
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF047857),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            const Text(
+                              'Theo dõi bất động sản, xe cộ, vàng, chứng khoán, tiền mặt và tài sản khác.',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: AppTheme.textSecondary,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            AppButton(
+                              text: 'Danh mục tài sản',
+                              icon: Icons.arrow_forward,
+                              backgroundColor: const Color(0xFF10B981),
+                              onPressed: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => AssetsView(
+                                      token: controller.token,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
 
                       // Logout Button
-                      AppButton(
-                        text: 'Đăng xuất',
-                        backgroundColor: AppTheme.errorColor,
-                        icon: Icons.logout,
+                      OutlinedButton.icon(
+                        icon: const Icon(
+                          Icons.logout,
+                          color: AppTheme.errorColor,
+                        ),
+                        label: const Text(
+                          'Đăng xuất',
+                          style: TextStyle(
+                            color: AppTheme.errorColor,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: AppTheme.errorColor),
+                          minimumSize: const Size(double.infinity, 48),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
                         onPressed: () {
                           controller.logout();
                           Navigator.of(context).pop();

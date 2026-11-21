@@ -44,12 +44,16 @@ class AppButton extends StatelessWidget {
         children: [
           Icon(icon, size: 20, color: effectiveTextColor),
           const SizedBox(width: 8),
-          Text(
-            text,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: effectiveTextColor,
+          Flexible(
+            child: Text(
+              text,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: effectiveTextColor,
+              ),
             ),
           ),
         ],
@@ -57,6 +61,8 @@ class AppButton extends StatelessWidget {
     } else {
       childContent = Text(
         text,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
         style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w600,

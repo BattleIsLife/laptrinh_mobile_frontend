@@ -9,13 +9,20 @@ import 'package:frontend/features/auth/views/welcome_view.dart';
 
 void main() {
   group('LoginView & LoginForm Widget Tests', () {
+    setUp(() {
+      final binding = TestWidgetsFlutterBinding.ensureInitialized();
+      binding.platformDispatcher.implicitView?.physicalSize =
+          const Size(800, 1200);
+      binding.platformDispatcher.implicitView?.devicePixelRatio = 1.0;
+    });
+
     testWidgets('Renders all required elements (title, fields, button)', (
       WidgetTester tester,
     ) async {
       await tester.pumpWidget(const App());
 
       // Check titles & descriptions
-      expect(find.text('Đăng nhập tài khoản'), findsOneWidget);
+      expect(find.text('Chào mừng trở lại!'), findsOneWidget);
       expect(find.text('Địa chỉ Email'), findsOneWidget);
       expect(find.text('Mật khẩu'), findsOneWidget);
       expect(find.text('Đăng nhập'), findsOneWidget);
@@ -58,6 +65,7 @@ void main() {
 
       // Tap login without entering anything
       final submitButton = find.byType(AppButton);
+      await tester.ensureVisible(submitButton);
       await tester.tap(submitButton);
       await tester.pumpAndSettle();
 
@@ -82,7 +90,9 @@ void main() {
         await tester.enterText(emailFields.last, 'wrong-password');
 
         // Tap submit
-        await tester.tap(find.byType(AppButton));
+        final submitButton = find.byType(AppButton);
+        await tester.ensureVisible(submitButton);
+        await tester.tap(submitButton);
         await tester.pumpAndSettle();
 
         // Verify error message is shown
@@ -108,7 +118,9 @@ void main() {
       await tester.enterText(emailFields.first, 'student@example.com');
       await tester.enterText(emailFields.last, 'example-password');
 
-      await tester.tap(find.byType(AppButton));
+      final submitButton = find.byType(AppButton);
+      await tester.ensureVisible(submitButton);
+      await tester.tap(submitButton);
       await tester.pumpAndSettle();
 
       // Verify navigation to WelcomeView
