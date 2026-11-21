@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'core/theme/app_theme.dart';
 import 'features/auth/views/login_view.dart';
-
+import 'features/auth/views/income_list_view.dart';
+import 'features/auth/views/expense_list_view.dart';
 /// Root Application Widget configuring theme and home route.
 class App extends StatelessWidget {
   const App({super.key});
@@ -13,6 +14,7 @@ class App extends StatelessWidget {
       title: 'Flutter Auth MVC',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
+      
       home: const LoginView(),
     );
   }

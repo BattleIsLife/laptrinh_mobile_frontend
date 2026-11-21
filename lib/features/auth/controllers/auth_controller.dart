@@ -148,7 +148,7 @@ class AuthController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // 3. Gọi service đăng ký (Bạn nhớ định nghĩa hàm register trong AuthService nhé)
+      // 3. Gọi service đăng ký 
       // Tạm thời nếu AuthService chưa có hàm register, bạn có thể gọi API tương ứng ở đây
       await _authService.register(
         fullName: fullName.trim(),
