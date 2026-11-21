@@ -264,30 +264,6 @@ class ApiClient {
     _client.close();
   }
 
-  /// Sends a GET request to the specified endpoint.
-  Future<Map<String, dynamic>> get(
-    String endpoint, {
-    Map<String, String>? headers,
-  }) async {
-    final uri = ApiConfig.getUri(endpoint);
-    final mergedHeaders = {...defaultHeaders, ...?headers};
-
-    try {
-      final response = await _client
-          .get(uri, headers: mergedHeaders)
-          .timeout(ApiConfig.connectTimeout);
-
-      return _processResponse(response);
-    } on SocketException {
-      throw NetworkException();
-    } on http.ClientException {
-      throw NetworkException();
-    } on TimeoutException {
-      throw RequestTimeoutException();
-    } on FormatException {
-      throw ApiException('Phản hồi từ máy chủ không đúng định dạng JSON.');
-    }
-  }
 
   /// Sends a PUT request to update data.
   Future<Map<String, dynamic>> put(
@@ -319,29 +295,6 @@ class ApiClient {
     }
   }
 
-  /// Sends a DELETE request to delete data.
-  Future<Map<String, dynamic>> delete(
-    String endpoint, {
-    Map<String, String>? headers,
-  }) async {
-    final uri = ApiConfig.getUri(endpoint);
-    final mergedHeaders = {...defaultHeaders, ...?headers};
 
-    try {
-      final response = await _client
-          .delete(uri, headers: mergedHeaders)
-          .timeout(ApiConfig.connectTimeout);
-
-      return _processResponse(response);
-    } on SocketException {
-      throw NetworkException();
-    } on http.ClientException {
-      throw NetworkException();
-    } on TimeoutException {
-      throw RequestTimeoutException();
-    } on FormatException {
-      throw ApiException('Phản hồi từ máy chủ không đúng định dạng JSON.');
-    }
-  }
 
 }
