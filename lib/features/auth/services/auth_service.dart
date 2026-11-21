@@ -44,7 +44,7 @@ class HttpAuthService implements AuthService {
     // Sensitive data is passed in request body and not logged.
     final response = await _apiClient.post(
       ApiConfig.loginEndpoint,
-      body: {'email': email, 'password': password},
+      body: {'username': email, 'password': password},
     );
 
     return AuthResult.fromJson(response);
@@ -127,7 +127,7 @@ class MockAuthService implements AuthService {
 
     // Giả lập lỗi trùng email hoặc số điện thoại nếu muốn test
     if (email == 'exists@example.com') {
-     throw ApiException('Số điện thoại hoặc Email này đã được sử dụng');
+      throw ApiException('Số điện thoại hoặc Email này đã được sử dụng');
     }
   }
 }

@@ -12,6 +12,7 @@ class ApiConfig {
 
   /// Authentication endpoints
   static const String loginEndpoint = '/api/auth/login';
+  static const String profileEndpoint = '/api/users/me/profile';
 
   /// Network timeout configurations
   static const Duration connectTimeout = Duration(seconds: 10);
@@ -20,7 +21,7 @@ class ApiConfig {
   /// Toggle for Mock Service vs Real REST API.
   /// When true, [AuthService] will simulate network calls with mock data.
   /// Set to false when connecting to the actual Node.js backend.
-  static bool useMockService = true;
+  static bool useMockService = false;
 
   /// Helper to build a complete [Uri] from an endpoint path.
   static Uri getUri(String endpoint) {

@@ -39,7 +39,9 @@ class _RegisterViewState extends State<RegisterView> {
 
   void _onRegisterSuccess() {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Đăng ký tài khoản thành công! Vui lòng đăng nhập.')),
+      const SnackBar(
+        content: Text('Đăng ký tài khoản thành công! Vui lòng đăng nhập.'),
+      ),
     );
     Navigator.of(context).pop(); // Quay lại trang đăng nhập
   }
@@ -57,7 +59,11 @@ class _RegisterViewState extends State<RegisterView> {
         ),
         title: const Text(
           'Đăng ký tài khoản',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: AppTheme.textPrimary,
+          ),
         ),
         centerTitle: true,
         actions: [
@@ -66,7 +72,11 @@ class _RegisterViewState extends State<RegisterView> {
             child: CircleAvatar(
               radius: 18,
               backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
-              child: const Icon(Icons.person, size: 20, color: AppTheme.primaryColor),
+              child: const Icon(
+                Icons.person,
+                size: 20,
+                color: AppTheme.primaryColor,
+              ),
             ),
           ),
         ],
@@ -74,7 +84,10 @@ class _RegisterViewState extends State<RegisterView> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24.0,
+              vertical: 20.0,
+            ),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 420),
               child: ListenableBuilder(
@@ -85,7 +98,10 @@ class _RegisterViewState extends State<RegisterView> {
                     children: [
                       // Badge & Header Info
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
                           color: AppTheme.primaryColor.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(20),
@@ -93,11 +109,19 @@ class _RegisterViewState extends State<RegisterView> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: const [
-                            Icon(Icons.verified_user_rounded, size: 14, color: AppTheme.primaryColor),
+                            Icon(
+                              Icons.verified_user_rounded,
+                              size: 14,
+                              color: AppTheme.primaryColor,
+                            ),
                             SizedBox(width: 6),
                             Text(
                               'HỒ SƠ TÀI CHÍNH CÁ NHÂN',
-                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.primaryColor),
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.primaryColor,
+                              ),
                             ),
                           ],
                         ),
@@ -105,12 +129,20 @@ class _RegisterViewState extends State<RegisterView> {
                       const SizedBox(height: 12),
                       const Text(
                         'Tạo tài khoản mới',
-                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textPrimary,
+                        ),
                       ),
                       const SizedBox(height: 6),
                       const Text(
                         'Bắt đầu hành trình kiếm soát tài chính & nâng hạng điểm tín dụng cá nhân.',
-                        style: TextStyle(fontSize: 13, color: AppTheme.textSecondary, height: 1.4),
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: AppTheme.textSecondary,
+                          height: 1.4,
+                        ),
                       ),
                       const SizedBox(height: 24),
 
@@ -121,18 +153,34 @@ class _RegisterViewState extends State<RegisterView> {
                           decoration: BoxDecoration(
                             color: AppTheme.errorBgColor,
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: AppTheme.errorColor.withValues(alpha: 0.3)),
+                            border: Border.all(
+                              color: AppTheme.errorColor.withValues(alpha: 0.3),
+                            ),
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.error_outline, color: AppTheme.errorColor, size: 20),
+                              const Icon(
+                                Icons.error_outline,
+                                color: AppTheme.errorColor,
+                                size: 20,
+                              ),
                               const SizedBox(width: 10),
                               Expanded(
-                                child: Text(_controller.errorMessage!, style: const TextStyle(color: AppTheme.errorColor, fontSize: 13)),
+                                child: Text(
+                                  _controller.errorMessage!,
+                                  style: const TextStyle(
+                                    color: AppTheme.errorColor,
+                                    fontSize: 13,
+                                  ),
+                                ),
                               ),
                               InkWell(
                                 onTap: _controller.clearError,
-                                child: const Icon(Icons.close, color: AppTheme.errorColor, size: 18),
+                                child: const Icon(
+                                  Icons.close,
+                                  color: AppTheme.errorColor,
+                                  size: 18,
+                                ),
                               ),
                             ],
                           ),
@@ -166,12 +214,22 @@ class _RegisterViewState extends State<RegisterView> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text('Đã có tài khoản? ', style: TextStyle(fontSize: 14, color: AppTheme.textSecondary)),
+                          const Text(
+                            'Đã có tài khoản? ',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: AppTheme.textSecondary,
+                            ),
+                          ),
                           GestureDetector(
                             onTap: () => Navigator.of(context).pop(),
                             child: const Text(
                               'Đăng nhập ngay',
-                              style: TextStyle(fontSize: 14, color: AppTheme.primaryColor, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: AppTheme.primaryColor,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ],

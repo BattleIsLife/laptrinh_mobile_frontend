@@ -13,7 +13,7 @@ class App extends StatelessWidget {
       title: 'Flutter Auth MVC',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      home: const LoginView(),
+      home: LoginView(),
     );
   }
 }

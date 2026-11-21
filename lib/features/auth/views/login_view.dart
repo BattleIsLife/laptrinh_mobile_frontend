@@ -4,8 +4,11 @@ import '../../../core/config/api_config.dart';
 import '../../../core/theme/app_theme.dart';
 import '../controllers/auth_controller.dart';
 import 'components/login_form.dart';
-import 'register_view.dart'; 
+import 'register_view.dart';
 import 'welcome_view.dart';
+import '../../profile/controllers/profile_controller.dart';
+import '../../profile/views/profile_view.dart';
+
 // Import màn hình đăng ký của bạn vào đây (nếu có, ví dụ: import 'register_view.dart';)
 
 /// Main authentication screen.
@@ -45,15 +48,23 @@ class _LoginViewState extends State<LoginView> {
   }
 
   void _onLoginSuccess(String email) {
+    final token = _controller.token;
+    if (token == null || token.isEmpty) {
+      return;
+    }
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => WelcomeView(controller: _controller)),
+      MaterialPageRoute(
+        builder: (_) =>
+            ProfileView(profileController: ProfileController(token: token)),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.backgroundColor, // Giữ màu nền chuẩn của AppTheme
+      backgroundColor:
+          AppTheme.backgroundColor, // Giữ màu nền chuẩn của AppTheme
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -85,7 +96,9 @@ class _LoginViewState extends State<LoginView> {
                         elevation: 0,
                         color: AppTheme.surfaceColor,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(24), // Bo tròn mềm mại hơn
+                          borderRadius: BorderRadius.circular(
+                            24,
+                          ), // Bo tròn mềm mại hơn
                           side: const BorderSide(color: AppTheme.borderColor),
                         ),
                         child: Padding(
@@ -112,9 +125,12 @@ class _LoginViewState extends State<LoginView> {
                           GestureDetector(
                             onTap: () {
                               Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => RegisterView(controller: _controller)),
-    );
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      RegisterView(controller: _controller),
+                                ),
+                              );
                             },
                             child: const Text(
                               'Đăng ký ngay',
@@ -163,11 +179,7 @@ class _LoginViewState extends State<LoginView> {
           child: Stack(
             alignment: Alignment.center,
             children: [
-              const Icon(
-                Icons.shield_rounded,
-                size: 38,
-                color: Colors.white,
-              ),
+              const Icon(Icons.shield_rounded, size: 38, color: Colors.white),
               Positioned(
                 right: 8,
                 bottom: 8,
@@ -273,7 +285,11 @@ class _LoginViewState extends State<LoginView> {
         children: [
           Row(
             children: [
-              const Icon(Icons.info_outline, size: 16, color: AppTheme.textSecondary),
+              const Icon(
+                Icons.info_outline,
+                size: 16,
+                color: AppTheme.textSecondary,
+              ),
               const SizedBox(width: 8),
               const Expanded(
                 child: Text(
