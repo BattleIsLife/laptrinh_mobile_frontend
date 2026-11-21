@@ -373,22 +373,6 @@ class _ProfileInfoCardState extends State<ProfileInfoCard> {
     );
   }
 
-  Widget _dateData({required String date}) {
-    return Container(
-      child: Column(
-        children: [
-          Row(
-            Text(
-              'Ngày tạo tài khoản',
-              style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
-            ),
-          ),
-          Row(),
-        ],
-      ),
-    );
-  }
-
   Widget _buildDivider() => Divider(height: 1, color: Colors.grey.shade100);
   String _formatMoney(double amount) {
     return amount
