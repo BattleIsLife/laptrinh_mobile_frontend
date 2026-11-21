@@ -132,7 +132,6 @@ class ApiClient {
     }
   }
 
-  /// Sends a PATCH request to the specified [endpoint].
   Future<Map<String, dynamic>> patch(
     String endpoint, {
     Map<String, dynamic>? body,
@@ -163,8 +162,6 @@ class ApiClient {
     }
   }
 
-  /// Sends a DELETE request to the specified [endpoint].
-  /// Supports optional body and queryParams.
   Future<Map<String, dynamic>> delete(
     String endpoint, {
     Map<String, dynamic>? body,
@@ -264,7 +261,6 @@ class ApiClient {
     _client.close();
   }
 
-
   /// Sends a PUT request to update data.
   Future<Map<String, dynamic>> put(
     String endpoint, {
@@ -294,7 +290,4 @@ class ApiClient {
       throw ApiException('Phản hồi từ máy chủ không đúng định dạng JSON.');
     }
   }
-
-
-
 }

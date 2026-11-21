@@ -27,7 +27,7 @@ class HttpAuthService implements AuthService {
   final ApiClient _apiClient;
 
   HttpAuthService({ApiClient? apiClient})
-      : _apiClient = apiClient ?? ApiClient();
+    : _apiClient = apiClient ?? ApiClient();
 
   @override
   Future<AuthResult> login({
@@ -36,10 +36,7 @@ class HttpAuthService implements AuthService {
   }) async {
     final response = await _apiClient.post(
       ApiConfig.loginEndpoint,
-      body: {
-        'email': email,
-        'password': password,
-      },
+      body: {'username': email, 'password': password},
     );
 
     return AuthResult.fromJson(response);
