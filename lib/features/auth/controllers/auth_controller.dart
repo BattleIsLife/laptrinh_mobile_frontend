@@ -87,6 +87,7 @@ class AuthController extends ChangeNotifier {
 
       // 4. Update success state
       _currentUser = authResult.user;
+      ApiClient.setAuthToken(_token);
       _token = authResult.token;
       _errorMessage = null;
       _isLoading = false;
@@ -186,6 +187,7 @@ class AuthController extends ChangeNotifier {
   void logout() {
     _currentUser = null;
     _token = null;
+      ApiClient.setAuthToken(null);
     _errorMessage = null;
     _isLoading = false;
     notifyListeners();

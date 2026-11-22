@@ -1,3 +1,4 @@
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -49,32 +50,49 @@ class ServerException extends ApiException {
   ]) : super(statusCode: statusCode);
 }
 
-/// Generic HTTP API Client with centralized timeout, error handling,
-/// and header management. Supports GET, POST, PATCH, and DELETE.
+/// Generic HTTP API Client with centralized timeout,
+/// error handling, and header management.
 class ApiClient {
   final http.Client _client;
 
-  ApiClient({http.Client? client}) : _client = client ?? http.Client();
+  ApiClient({http.Client? client})
+      : _client = client ?? http.Client();
+
+  /// Token xác thực dùng chung cho toàn bộ ApiClient.
+  static String? _authToken;
+
+  /// Cập nhật token sau khi đăng nhập hoặc đăng xuất.
+  static void setAuthToken(String? token) {
+    _authToken =
+        token?.trim().isNotEmpty == true ? token!.trim() : null;
+  }
 
   /// Default headers sent with requests.
   Map<String, String> get defaultHeaders => {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-  };
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      };
 
-  /// Builds request headers including Bearer token if provided.
+  /// Builds request headers including Bearer token if available.
   Map<String, String> _buildHeaders(
     Map<String, String>? headers,
     String? token,
   ) {
     final merged = {...defaultHeaders, ...?headers};
-    if (token != null && token.isNotEmpty) {
-      merged['authorization'] = 'Bearer $token';
+
+    // Ưu tiên token được truyền trực tiếp.
+    // Nếu không có thì sử dụng token đã lưu.
+    final authToken =
+        (token != null && token.isNotEmpty) ? token : _authToken;
+
+    if (authToken != null && authToken.isNotEmpty) {
+      merged['Authorization'] = 'Bearer $authToken';
     }
+
     return merged;
   }
 
-  /// Sends a GET request to the specified [endpoint].
+  /// Sends a GET request.
   Future<Map<String, dynamic>> get(
     String endpoint, {
     Map<String, dynamic>? queryParams,
@@ -101,7 +119,7 @@ class ApiClient {
     }
   }
 
-  /// Sends a POST request to the specified [endpoint].
+  /// Sends a POST request.
   Future<Map<String, dynamic>> post(
     String endpoint, {
     Map<String, dynamic>? body,
@@ -132,6 +150,7 @@ class ApiClient {
     }
   }
 
+  /// Sends a PATCH request.
   Future<Map<String, dynamic>> patch(
     String endpoint, {
     Map<String, dynamic>? body,
@@ -162,6 +181,7 @@ class ApiClient {
     }
   }
 
+  /// Sends a DELETE request.
   Future<Map<String, dynamic>> delete(
     String endpoint, {
     Map<String, dynamic>? body,
@@ -175,6 +195,7 @@ class ApiClient {
     try {
       final request = http.Request('DELETE', uri);
       request.headers.addAll(mergedHeaders);
+
       if (body != null) {
         request.body = jsonEncode(body);
       }
@@ -182,6 +203,7 @@ class ApiClient {
       final streamedResponse = await _client
           .send(request)
           .timeout(ApiConfig.connectTimeout);
+
       final response = await http.Response.fromStream(streamedResponse);
 
       return _processResponse(response);
@@ -196,79 +218,15 @@ class ApiClient {
     }
   }
 
-  /// Processes HTTP responses and converts status codes into results or custom exceptions.
-  Map<String, dynamic> _processResponse(http.Response response) {
-    dynamic responseData;
-    if (response.body.isNotEmpty) {
-      try {
-        responseData = jsonDecode(response.body);
-      } catch (_) {
-        responseData = null;
-      }
-    }
-
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      if (responseData is Map<String, dynamic>) {
-        final status = responseData['status'];
-        // Backend doc states: "status": "false" on error
-        if (status == 'false' || status == false) {
-          final message =
-              _extractErrorMessage(responseData) ??
-              'Yêu cầu xử lý không thành công.';
-          throw ApiException(
-            message,
-            statusCode: response.statusCode,
-            responseData: responseData,
-          );
-        }
-        return responseData;
-      }
-      return {'data': responseData};
-    }
-
-    final message =
-        _extractErrorMessage(responseData) ??
-        'Yêu cầu thất bại với mã trạng thái ${response.statusCode}.';
-
-    if (response.statusCode == 401) {
-      throw UnauthorizedException(message);
-    } else if (response.statusCode >= 500) {
-      throw ServerException(message, response.statusCode);
-    } else {
-      throw ApiException(
-        message,
-        statusCode: response.statusCode,
-        responseData: responseData,
-      );
-    }
-  }
-
-  /// Extracts error message from standard backend error JSON responses if available.
-  String? _extractErrorMessage(dynamic responseData) {
-    if (responseData is Map<String, dynamic>) {
-      if (responseData['message'] is String) {
-        return responseData['message'] as String;
-      }
-      if (responseData['error'] is String) {
-        return responseData['error'] as String;
-      }
-    }
-    return null;
-  }
-
-  /// Closes the client when no longer needed.
-  void close() {
-    _client.close();
-  }
-
-  /// Sends a PUT request to update data.
+  /// Sends a PUT request.
   Future<Map<String, dynamic>> put(
     String endpoint, {
     Map<String, dynamic>? body,
     Map<String, String>? headers,
+    String? token,
   }) async {
     final uri = ApiConfig.getUri(endpoint);
-    final mergedHeaders = {...defaultHeaders, ...?headers};
+    final mergedHeaders = _buildHeaders(headers, token);
 
     try {
       final response = await _client
@@ -289,5 +247,76 @@ class ApiClient {
     } on FormatException {
       throw ApiException('Phản hồi từ máy chủ không đúng định dạng JSON.');
     }
+  }
+
+  /// Processes HTTP responses.
+  Map<String, dynamic> _processResponse(http.Response response) {
+    dynamic responseData;
+
+    if (response.body.isNotEmpty) {
+      try {
+        responseData = jsonDecode(response.body);
+      } catch (_) {
+        responseData = null;
+      }
+    }
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      if (responseData is Map<String, dynamic>) {
+        final status = responseData['status'];
+
+        if (status == 'false' || status == false) {
+          final message =
+              _extractErrorMessage(responseData) ??
+                  'Yêu cầu xử lý không thành công.';
+
+          throw ApiException(
+            message,
+            statusCode: response.statusCode,
+            responseData: responseData,
+          );
+        }
+
+        return responseData;
+      }
+
+      return {'data': responseData};
+    }
+
+    final message =
+        _extractErrorMessage(responseData) ??
+            'Yêu cầu thất bại với mã trạng thái ${response.statusCode}.';
+
+    if (response.statusCode == 401) {
+      throw UnauthorizedException(message);
+    } else if (response.statusCode >= 500) {
+      throw ServerException(message, response.statusCode);
+    } else {
+      throw ApiException(
+        message,
+        statusCode: response.statusCode,
+        responseData: responseData,
+      );
+    }
+  }
+
+  /// Extracts error message from backend responses.
+  String? _extractErrorMessage(dynamic responseData) {
+    if (responseData is Map<String, dynamic>) {
+      if (responseData['message'] is String) {
+        return responseData['message'] as String;
+      }
+
+      if (responseData['error'] is String) {
+        return responseData['error'] as String;
+      }
+    }
+
+    return null;
+  }
+
+  /// Closes the HTTP client.
+  void close() {
+    _client.close();
   }
 }

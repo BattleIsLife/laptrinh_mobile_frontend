@@ -36,7 +36,6 @@ class IncomeModel {
     };
   }
 }
-
 class IncomeStatisticModel {
   final String totalIncome;
   final List<IncomeChartPoint> chartData;
@@ -49,11 +48,33 @@ class IncomeStatisticModel {
   });
 
   factory IncomeStatisticModel.fromJson(Map<String, dynamic> json) {
-    var rawData = json['data'] as List? ?? [];
-    List<IncomeChartPoint> points = rawData.map((e) => IncomeChartPoint.fromJson(e)).toList();
+    // Lấy dữ liệu biểu đồ
+    final rawData = json['data'];
 
-    var rawStructure = json['structure'] as Map<String, dynamic>? ?? {};
-    Map<String, String> structMap = rawStructure.map((key, value) => MapEntry(key, value.toString()));
+    final List<IncomeChartPoint> points = [];
+
+    if (rawData is List) {
+      for (final item in rawData) {
+        if (item is Map) {
+          points.add(
+            IncomeChartPoint.fromJson(
+              Map<String, dynamic>.from(item),
+            ),
+          );
+        }
+      }
+    }
+
+    // Lấy cơ cấu thu nhập
+    final rawStructure = json['structure'];
+
+    final Map<String, String> structMap = {};
+
+    if (rawStructure is Map) {
+      rawStructure.forEach((key, value) {
+        structMap[key.toString()] = value?.toString() ?? '0';
+      });
+    }
 
     return IncomeStatisticModel(
       totalIncome: json['total_income']?.toString() ?? '0',
@@ -62,7 +83,6 @@ class IncomeStatisticModel {
     );
   }
 }
-
 class IncomeChartPoint {
   final String amount;
   final String date;

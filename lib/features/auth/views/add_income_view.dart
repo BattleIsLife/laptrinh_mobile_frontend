@@ -30,7 +30,7 @@ class _AddIncomeViewState extends State<AddIncomeView> {
   void initState() {
     super.initState();
     _ownsController = widget.controller == null;
-    _controller = widget.controller ?? IncomeController(useMock: true);
+    _controller = widget.controller ?? IncomeController();
     _dateController.text = _formatDisplayDate(_selectedDate);
   }
 
