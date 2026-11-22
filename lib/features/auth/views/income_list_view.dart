@@ -16,23 +16,20 @@ class IncomeListView extends StatefulWidget {
 
 class _IncomeListViewState extends State<IncomeListView> {
   final IncomeController _controller = IncomeController();
- final DateTime _now = DateTime.now();
+  final DateTime _now = DateTime.now();
 
-late int _selectedMonth;
-late int _selectedYear;
+  late int _selectedMonth;
+  late int _selectedYear;
 
-@override
-void initState() {
-  super.initState();
+  @override
+  void initState() {
+    super.initState();
 
-  _selectedMonth = _now.month;
-  _selectedYear = _now.year;
+    _selectedMonth = _now.month;
+    _selectedYear = _now.year;
 
-  _controller.loadIncomeData(
-    month: _selectedMonth,
-    year: _selectedYear,
-  );
-}
+    _controller.loadIncomeData(month: _selectedMonth, year: _selectedYear);
+  }
 
   @override
   void dispose() {
@@ -50,7 +47,34 @@ void initState() {
     );
     return '$formatted đ';
   }
+String _getPeakIncomeDate(List<IncomeChartPoint> chartData) {
+  if (chartData.isEmpty) return 'Chưa có dữ liệu';
 
+  IncomeChartPoint? peakPoint;
+  double maxAmount = 0;
+
+  for (final point in chartData) {
+    final amount = double.tryParse(
+          point.amount.replaceAll(',', '').trim(),
+        ) ??
+        0;
+
+    if (peakPoint == null || amount > maxAmount) {
+      maxAmount = amount;
+      peakPoint = point;
+    }
+  }
+
+  if (peakPoint == null || maxAmount <= 0) {
+    return 'Chưa có thu nhập';
+  }
+
+  final date = DateTime.tryParse(peakPoint.date);
+
+  if (date == null) return 'Chưa có dữ liệu';
+
+  return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}';
+}
   String _formatDisplayDate(String rawDate) {
     final trimmed = rawDate.trim();
     final parts = trimmed.split('-');
@@ -106,17 +130,23 @@ void initState() {
       firstDate: DateTime(1901, 1, 1),
       lastDate: DateTime(2100, 12, 31),
       helpText: 'Chọn tháng/năm xem thu nhập',
+      cancelText: 'Hủy',
+      confirmText: 'OK',
     );
-    if (picked != null && mounted) {
-      setState(() {
-        _selectedMonth = picked.month;
-        _selectedYear = picked.year;
-      });
-      await _controller.loadIncomeData(
-        month: _selectedMonth,
-        year: _selectedYear,
-      );
-    }
+
+    if (picked == null || !mounted) return;
+
+    debugPrint('Tháng đã chọn: ${picked.month}/${picked.year}');
+
+    setState(() {
+      _selectedMonth = picked.month;
+      _selectedYear = picked.year;
+    });
+
+    await _controller.loadIncomeData(
+      month: _selectedMonth,
+      year: _selectedYear,
+    );
   }
 
   @override
@@ -155,11 +185,11 @@ void initState() {
       body: ListenableBuilder(
         listenable: _controller,
         builder: (context, _) {
-       final stat = _controller.statistic;
-final items = _controller.incomes;
-final structure = stat?.structure ?? const <String, String>{};
-final chartData = stat?.chartData ?? const <IncomeChartPoint>[];
-final totalIncomeText = _formatMoney(stat?.totalIncome ?? '0');
+          final stat = _controller.statistic;
+          final items = _controller.incomes;
+          final structure = stat?.structure ?? const <String, String>{};
+          final chartData = stat?.chartData ?? const <IncomeChartPoint>[];
+          final totalIncomeText = _formatMoney(stat?.totalIncome ?? '0');
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
@@ -248,7 +278,9 @@ final totalIncomeText = _formatMoney(stat?.totalIncome ?? '0');
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                              color: AppTheme.primaryColor.withValues(
+                                alpha: 0.1,
+                              ),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: const Icon(
@@ -279,9 +311,9 @@ final totalIncomeText = _formatMoney(stat?.totalIncome ?? '0');
                               color: AppTheme.textSecondary,
                             ),
                           ),
-                          const Text(
-                            'Cao điểm: 10/11',
-                            style: TextStyle(
+                          Text(
+                            'Cao điểm: ${_getPeakIncomeDate(chartData)}',
+                            style: const TextStyle(
                               fontSize: 11,
                               color: AppTheme.errorColor,
                               fontWeight: FontWeight.w600,
@@ -291,25 +323,25 @@ final totalIncomeText = _formatMoney(stat?.totalIncome ?? '0');
                       ),
                       const SizedBox(height: 10),
                       SizedBox(
-  height: 105,
-  width: double.infinity,
-  child: chartData.isEmpty
-      ? const Center(
-          child: Text(
-            'Chưa có dữ liệu biểu đồ trong tháng này',
-            style: TextStyle(
-              fontSize: 11,
-              color: AppTheme.textSecondary,
-            ),
-          ),
-        )
-      : CustomPaint(
-          painter: _SimpleChartPainter(
-            color: AppTheme.primaryColor,
-            chartData: chartData,
-          ),
-        ),
-),
+                        height: 105,
+                        width: double.infinity,
+                        child: chartData.isEmpty
+                            ? const Center(
+                                child: Text(
+                                  'Chưa có dữ liệu biểu đồ trong tháng này',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: AppTheme.textSecondary,
+                                  ),
+                                ),
+                              )
+                            : CustomPaint(
+                                painter: _SimpleChartPainter(
+                                  color: AppTheme.primaryColor,
+                                  chartData: chartData,
+                                ),
+                              ),
+                      ),
                       const SizedBox(height: 10),
                       Row(
                         children: [
@@ -374,7 +406,9 @@ final totalIncomeText = _formatMoney(stat?.totalIncome ?? '0');
                                 vertical: 5,
                               ),
                               decoration: BoxDecoration(
-                                color: AppTheme.primaryColor.withValues(alpha: 0.08),
+                                color: AppTheme.primaryColor.withValues(
+                                  alpha: 0.08,
+                                ),
                                 borderRadius: BorderRadius.circular(14),
                               ),
                               child: Row(
@@ -421,7 +455,10 @@ final totalIncomeText = _formatMoney(stat?.totalIncome ?? '0');
                     ),
                     Text(
                       'Chạm để quản lý',
-                      style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: AppTheme.textSecondary,
+                      ),
                     ),
                   ],
                 ),
@@ -458,7 +495,9 @@ final totalIncomeText = _formatMoney(stat?.totalIncome ?? '0');
                   )
                 else
                   ...items.map((item) {
-                    final formattedDate = _formatDisplayDate(item.transactionDate);
+                    final formattedDate = _formatDisplayDate(
+                      item.transactionDate,
+                    );
                     final subtitle = item.description?.isNotEmpty == true
                         ? '$formattedDate • ${item.description}'
                         : formattedDate;
@@ -480,7 +519,9 @@ final totalIncomeText = _formatMoney(stat?.totalIncome ?? '0');
                               width: 42,
                               height: 42,
                               decoration: BoxDecoration(
-                                color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                                color: AppTheme.primaryColor.withValues(
+                                  alpha: 0.1,
+                                ),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Icon(
@@ -515,10 +556,11 @@ final totalIncomeText = _formatMoney(stat?.totalIncome ?? '0');
                                           vertical: 2,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: AppTheme.primaryColor.withValues(
-                                            alpha: 0.1,
+                                          color: AppTheme.primaryColor
+                                              .withValues(alpha: 0.1),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
                                           ),
-                                          borderRadius: BorderRadius.circular(6),
                                         ),
                                         child: Text(
                                           _typeLabel(item.incomeType),
@@ -619,9 +661,7 @@ final totalIncomeText = _formatMoney(stat?.totalIncome ?? '0');
 
   Future<void> _openEditIncome(IncomeModel item) async {
     final result = await Navigator.of(context).push<dynamic>(
-      MaterialPageRoute(
-        builder: (_) => EditIncomeView(income: item),
-      ),
+      MaterialPageRoute(builder: (_) => EditIncomeView(income: item)),
     );
 
     if (!mounted || result == null) return;
@@ -636,10 +676,7 @@ class _SimpleChartPainter extends CustomPainter {
   final Color color;
   final List<IncomeChartPoint> chartData;
 
-  _SimpleChartPainter({
-    required this.color,
-    required this.chartData,
-  });
+  _SimpleChartPainter({required this.color, required this.chartData});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -665,13 +702,9 @@ class _SimpleChartPainter extends CustomPainter {
     final points = <Offset>[];
 
     for (int i = 0; i < amounts.length; i++) {
-      final normalized = maxAmount > 0
-          ? amounts[i] / maxAmount
-          : 0.0;
+      final normalized = maxAmount > 0 ? amounts[i] / maxAmount : 0.0;
 
-      final x = chartData.length > 1
-          ? i * stepX
-          : size.width / 2;
+      final x = chartData.length > 1 ? i * stepX : size.width / 2;
 
       final y = topPad + chartHeight * (1 - normalized);
 
@@ -699,31 +732,21 @@ class _SimpleChartPainter extends CustomPainter {
     for (final point in points) {
       canvas.drawCircle(point, 4, Paint()..color = color);
 
-      canvas.drawCircle(
-        point,
-        1.8,
-        Paint()..color = Colors.white,
-      );
+      canvas.drawCircle(point, 1.8, Paint()..color = Colors.white);
     }
 
     // Hiển thị tối đa 6 nhãn ngày để tránh bị chồng chữ.
     final labelIndexes = <int>{};
 
     if (chartData.length <= 6) {
-      labelIndexes.addAll(
-        List.generate(chartData.length, (index) => index),
-      );
+      labelIndexes.addAll(List.generate(chartData.length, (index) => index));
     } else {
       for (int i = 0; i < 6; i++) {
-        labelIndexes.add(
-          (i * (chartData.length - 1) / 5).round(),
-        );
+        labelIndexes.add((i * (chartData.length - 1) / 5).round());
       }
     }
 
-    final textPainter = TextPainter(
-      textDirection: TextDirection.ltr,
-    );
+    final textPainter = TextPainter(textDirection: TextDirection.ltr);
 
     for (final index in labelIndexes) {
       final rawDate = chartData[index].date;
@@ -735,27 +758,22 @@ class _SimpleChartPainter extends CustomPainter {
 
       textPainter.text = TextSpan(
         text: label,
-        style: const TextStyle(
-          fontSize: 10,
-          color: AppTheme.textSecondary,
-        ),
+        style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary),
       );
 
       textPainter.layout();
 
-      final dx = (points[index].dx - textPainter.width / 2)
-          .clamp(0.0, size.width - textPainter.width);
-
-      textPainter.paint(
-        canvas,
-        Offset(dx, size.height - 14),
+      final dx = (points[index].dx - textPainter.width / 2).clamp(
+        0.0,
+        size.width - textPainter.width,
       );
+
+      textPainter.paint(canvas, Offset(dx, size.height - 14));
     }
   }
 
   @override
   bool shouldRepaint(covariant _SimpleChartPainter oldDelegate) {
-    return oldDelegate.color != color ||
-        oldDelegate.chartData != chartData;
+    return oldDelegate.color != color || oldDelegate.chartData != chartData;
   }
 }

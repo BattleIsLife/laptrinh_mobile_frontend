@@ -54,7 +54,7 @@ class HttpIncomeService implements IncomeService {
         'year': year,
       },
     );
-print('INCOME API RESPONSE: $response');
+
     final rawList = response['data'] as List? ?? [];
 
     final incomes = rawList

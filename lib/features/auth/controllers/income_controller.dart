@@ -136,8 +136,8 @@ year: selectedYear,
   /// Xóa khoản thu nhập
   Future<bool> removeIncome(
     int id, {
-    int currentMonth = 11,
-    int currentYear = 2026,
+    int? currentMonth,
+    int? currentYear,
   }) async {
     _errorMessage = null;
     notifyListeners();
