@@ -91,8 +91,11 @@ final points = rawPoints
       (k, v) => MapEntry(k.toString(), v.toString()),
     );
 
-    final essentialRaw =
-        json['essential rate'] ?? json['essential_rate'] ?? json['essentialRate'] ?? '80';
+   final essentialRaw =
+    json['essential rate'] ??
+    json['essential_rate'] ??
+    json['essentialRate'] ??
+    '0';
 
     return ExpenseStatisticModel(
       totalExpense: (json['total_expense'] ?? '0').toString(),
