@@ -86,18 +86,17 @@ class AuthController extends ChangeNotifier {
       );
 
       // 4. Update success state
-      _currentUser = authResult.user;
-      ApiClient.setAuthToken(_token);
-      _token = authResult.token;
-      _errorMessage = null;
-      _isLoading = false;
-      notifyListeners();
-      return true;
-    } on ApiException catch (e) {
-      _errorMessage = e.message;
-      _isLoading = false;
-      notifyListeners();
-      return false;
+_currentUser = authResult.user;
+
+// Gán token mới trước
+_token = authResult.token;
+
+ApiClient.setAuthToken(_token);
+
+_errorMessage = null;
+_isLoading = false;
+notifyListeners();
+return true;
     } catch (e) {
       _errorMessage = 'Đã xảy ra lỗi không xác định. Vui lòng thử lại sau.';
       _isLoading = false;
