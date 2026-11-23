@@ -154,49 +154,6 @@ class _AddExpenseFormCardState extends State<AddExpenseFormCard> {
             ),
           ),
 
-          const SizedBox(height: 16),
-
-          // Tên giao dịch
-          _fieldHeader(
-            'Tên giao dịch',
-            required: true,
-            trailing: 'Bắt buộc',
-          ),
-
-          TextFormField(
-            controller: widget.titleController,
-            style: const TextStyle(
-              fontSize: 13,
-              color: AppTheme.textPrimary,
-            ),
-            decoration: const InputDecoration(
-              filled: true,
-              fillColor: AppTheme.cardColor,
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: 14,
-                vertical: 13,
-              ),
-              hintText: 'Nhập tên giao dịch (vd: Tiền trọ, Đi siêu thị...)',
-              hintStyle: TextStyle(
-                fontSize: 12,
-                color: AppTheme.textMuted,
-              ),
-              suffixIcon: Icon(
-                Icons.edit_note_outlined,
-                size: 18,
-                color: AppTheme.textSecondary,
-              ),
-            ).copyWith(
-              errorText: widget.serverErrors['title'],
-            ),
-            validator: (val) {
-              if ((val ?? '').trim().isEmpty) {
-                return 'Vui lòng nhập tên giao dịch';
-              }
-              return null;
-            },
-          ),
-
           const SizedBox(height: 14),
 
           // Danh mục chi tiêu
@@ -480,39 +437,7 @@ class _AddExpenseFormCardState extends State<AddExpenseFormCard> {
             ),
           ),
 
-          const SizedBox(height: 14),
-
-          // Banner thông tin
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppTheme.primaryColor.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: AppTheme.primaryColor.withValues(alpha: 0.18),
-              ),
-            ),
-            child: Row(
-              children: const [
-                Icon(
-                  Icons.trending_up,
-                  size: 18,
-                  color: AppTheme.primaryDark,
-                ),
-                SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    'Giao dịch này sẽ được phản ánh trực tiếp vào báo cáo thói quen chi tiêu tín dụng CIC cá nhân của bạn.',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: AppTheme.textSecondary,
-                      height: 1.35,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+         
         ],
       ),
     );

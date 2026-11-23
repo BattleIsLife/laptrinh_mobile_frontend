@@ -154,6 +154,7 @@ class ExpenseController extends ChangeNotifier {
 
   /// POST /api/expense/
  
+
 Future<ExpenseModel?> createExpense({
   required String amount,
   required String categoryId,
@@ -186,6 +187,7 @@ Future<ExpenseModel?> createExpense({
         ? cleanDesc
         : (cleanTitle.isNotEmpty ? cleanTitle : '');
 
+    // Bước 1: Gửi yêu cầu lưu chi tiêu lên backend.
     await _expenseService.createExpense(
       amount: normalizedAmount,
       categoryId: categoryId,
@@ -193,23 +195,21 @@ Future<ExpenseModel?> createExpense({
       description: finalDescription.isEmpty ? null : finalDescription,
     );
 
+    // Bước 2: Tải lại danh sách và thống kê.
     final transactionDateParsed = DateTime.tryParse(transactionDate);
 
     final month = refreshMonth ?? transactionDateParsed?.month;
     final year = refreshYear ?? transactionDateParsed?.year;
 
     if (month != null && year != null) {
-      try {
-        await loadExpenseData(
-          month: month,
-          year: year,
-        );
-      } catch (_) {
-       
-      }
+      await loadExpenseData(
+        month: month,
+        year: year,
+      );
     }
 
-    ExpenseModel(
+    // Bước 3: Trả kết quả thành công về AddExpenseView.
+    return ExpenseModel(
       id: 0,
       amount: normalizedAmount,
       categoryId: categoryId,
