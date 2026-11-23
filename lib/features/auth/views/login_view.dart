@@ -8,7 +8,8 @@ import 'register_view.dart';
 import 'welcome_view.dart';
 import '../../profile/controllers/profile_controller.dart';
 import '../../profile/views/profile_view.dart';
-
+import 'income_list_view.dart';
+import 'expense_list_view.dart';
 // Import màn hình đăng ký của bạn vào đây (nếu có, ví dụ: import 'register_view.dart';)
 
 /// Main authentication screen.
@@ -55,7 +56,7 @@ class _LoginViewState extends State<LoginView> {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) =>
-            ProfileView(profileController: ProfileController(token: token)),
+           const ExpenseListView()
       ),
     );
   }

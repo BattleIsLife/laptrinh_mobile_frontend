@@ -23,14 +23,14 @@ class _AddIncomeViewState extends State<AddIncomeView> {
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
 
-  DateTime _selectedDate = DateTime(2026, 11, 18);
+DateTime _selectedDate = DateTime.now();
   String? _selectedIncomeType;
 
   @override
   void initState() {
     super.initState();
     _ownsController = widget.controller == null;
-    _controller = widget.controller ?? IncomeController(useMock: true);
+    _controller = widget.controller ?? IncomeController();
     _dateController.text = _formatDisplayDate(_selectedDate);
   }
 

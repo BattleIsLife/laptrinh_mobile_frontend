@@ -1,13 +1,13 @@
 import 'package:flutter/foundation.dart';
+
 import '../models/income_model.dart';
 import '../services/income_service.dart';
 
 class IncomeController extends ChangeNotifier {
   final IncomeService _incomeService;
 
-  IncomeController({IncomeService? incomeService, bool? useMock})
-      : _incomeService =
-            incomeService ?? (useMock != null ? IncomeService(useMock: useMock) : IncomeService());
+  IncomeController({IncomeService? incomeService})
+    : _incomeService = incomeService ?? IncomeService();
 
   bool _isLoading = false;
   bool _isSubmitting = false;
@@ -42,7 +42,10 @@ class IncomeController extends ChangeNotifier {
   }
 
   /// Tải danh sách và thống kê thu nhập theo tháng/năm
-  Future<void> loadIncomeData({int month = 11, int year = 2026, int page = 0}) async {
+  Future<void> loadIncomeData({int? month, int? year, int page = 0}) async {
+    final now = DateTime.now();
+    final selectedMonth = month ?? now.month;
+    final selectedYear = year ?? now.year;
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -50,15 +53,15 @@ class IncomeController extends ChangeNotifier {
     try {
       final listResult = await _incomeService.getIncomes(
         page: page,
-        month: month,
-        year: year,
+        month: selectedMonth,
+        year: selectedYear,
       );
       _incomes = (listResult['incomes'] as List<IncomeModel>?) ?? [];
       _totalItems = (listResult['total_items'] as int?) ?? _incomes.length;
 
       _statistic = await _incomeService.getIncomeStatistic(
-        month: month,
-        year: year,
+       month: selectedMonth,
+year: selectedYear,
       );
     } catch (e) {
       _errorMessage = e.toString().replaceFirst('Exception: ', '');
@@ -93,7 +96,9 @@ class IncomeController extends ChangeNotifier {
         source: source.trim(),
         incomeType: incomeType.trim(),
         transactionDate: transactionDate.trim(),
-        description: (trimmedDesc == null || trimmedDesc.isEmpty) ? null : trimmedDesc,
+        description: (trimmedDesc == null || trimmedDesc.isEmpty)
+            ? null
+            : trimmedDesc,
       );
 
       await _incomeService.createIncome(payload);
@@ -114,8 +119,8 @@ class IncomeController extends ChangeNotifier {
   /// Thêm khoản thu nhập mới từ IncomeModel (giữ tương thích nếu nơi khác đang gọi)
   Future<bool> addIncome(
     IncomeModel income, {
-    int currentMonth = 11,
-    int currentYear = 2026,
+    int? currentMonth,
+    int? currentYear,
   }) async {
     return createIncome(
       amount: income.amount,
@@ -131,8 +136,8 @@ class IncomeController extends ChangeNotifier {
   /// Xóa khoản thu nhập
   Future<bool> removeIncome(
     int id, {
-    int currentMonth = 11,
-    int currentYear = 2026,
+    int? currentMonth,
+    int? currentYear,
   }) async {
     _errorMessage = null;
     notifyListeners();
@@ -147,6 +152,7 @@ class IncomeController extends ChangeNotifier {
       return false;
     }
   }
+
   /// Cập nhật khoản thu nhập theo ID
   Future<bool> updateIncome(
     int id, {
@@ -173,8 +179,9 @@ class IncomeController extends ChangeNotifier {
         source: source.trim(),
         incomeType: incomeType.trim(),
         transactionDate: transactionDate.trim(),
-        description:
-            (trimmedDesc == null || trimmedDesc.isEmpty) ? null : trimmedDesc,
+        description: (trimmedDesc == null || trimmedDesc.isEmpty)
+            ? null
+            : trimmedDesc,
       );
 
       await _incomeService.updateIncome(id, updatedModel);

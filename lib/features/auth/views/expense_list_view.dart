@@ -1,10 +1,13 @@
+
 import 'package:flutter/material.dart';
+
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_button.dart';
 import '../controllers/expense_controller.dart';
 import '../models/expense_model.dart';
 import 'add_expense_view.dart';
 import 'edit_expense_view.dart';
+
 class ExpenseListView extends StatefulWidget {
   const ExpenseListView({super.key});
 
@@ -14,13 +17,18 @@ class ExpenseListView extends StatefulWidget {
 
 class _ExpenseListViewState extends State<ExpenseListView> {
   final ExpenseController _controller = ExpenseController();
-  int _selectedMonth = 11;
-  int _selectedYear = 2026;
+
+  int _selectedMonth = DateTime.now().month;
+  int _selectedYear = DateTime.now().year;
 
   @override
   void initState() {
     super.initState();
-    _controller.loadExpenseData(month: _selectedMonth, year: _selectedYear);
+
+    _controller.loadExpenseData(
+      month: _selectedMonth,
+      year: _selectedYear,
+    );
   }
 
   @override
@@ -33,39 +41,82 @@ class _ExpenseListViewState extends State<ExpenseListView> {
     final clean = raw.replaceAll(',', '').trim();
     final val = double.tryParse(clean) ?? 0;
     final intVal = val.truncate().abs();
+
     final formatted = intVal.toString().replaceAllMapped(
           RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
           (m) => '${m[1]}.',
         );
+
     return '$formatted đ';
   }
 
   String _formatDisplayDate(String rawDate) {
     final trimmed = rawDate.trim();
     final parts = trimmed.split('-');
+
     if (parts.length == 3 && parts[0].length == 4) {
       return '${parts[2]}/${parts[1]}/${parts[0]}';
     }
+
     return trimmed;
+  }
+
+  String _getPeakExpenseDate(List<ExpenseChartPoint> points) {
+    if (points.isEmpty) return 'Chưa có dữ liệu';
+
+    ExpenseChartPoint? peakPoint;
+    double maxAmount = -1;
+
+    for (final point in points) {
+      final amount = double.tryParse(
+            point.amount.replaceAll(',', '').trim(),
+          ) ??
+          0;
+
+      if (amount > maxAmount) {
+        maxAmount = amount;
+        peakPoint = point;
+      }
+    }
+
+    if (peakPoint == null || maxAmount <= 0) {
+      return 'Chưa có chi tiêu';
+    }
+
+    final date = DateTime.tryParse(peakPoint.date);
+
+    if (date == null) return 'Chưa có dữ liệu';
+
+    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}';
   }
 
   IconData _categoryIcon(String categoryName) {
     final lower = categoryName.toLowerCase();
+
     if (lower.contains('nhà') || lower.contains('điện')) {
       return Icons.apartment_outlined;
     }
-    if (lower.contains('ăn') || lower.contains('phở') || lower.contains('cafe')) {
+
+    if (lower.contains('ăn') ||
+        lower.contains('phở') ||
+        lower.contains('cafe')) {
       return Icons.restaurant_outlined;
     }
-    if (lower.contains('đi lại') || lower.contains('di chuyển') || lower.contains('xe')) {
+
+    if (lower.contains('đi lại') ||
+        lower.contains('di chuyển') ||
+        lower.contains('xe')) {
       return Icons.directions_car_outlined;
     }
+
     if (lower.contains('mua sắm')) {
       return Icons.shopping_bag_outlined;
     }
+
     if (lower.contains('giải trí')) {
       return Icons.sports_esports_outlined;
     }
+
     return Icons.receipt_long_outlined;
   }
 
@@ -77,11 +128,13 @@ class _ExpenseListViewState extends State<ExpenseListView> {
       lastDate: DateTime(2100, 12, 31),
       helpText: 'Chọn tháng/năm xem chi tiêu',
     );
+
     if (picked != null && mounted) {
       setState(() {
         _selectedMonth = picked.month;
         _selectedYear = picked.year;
       });
+
       await _controller.loadExpenseData(
         month: _selectedMonth,
         year: _selectedYear,
@@ -97,9 +150,11 @@ class _ExpenseListViewState extends State<ExpenseListView> {
     );
 
     if (!mounted || result == null) return;
+
     setState(() {});
   }
-Future<void> _openEditExpense(ExpenseModel item) async {
+
+  Future<void> _openEditExpense(ExpenseModel item) async {
     final result = await Navigator.of(context).push<dynamic>(
       MaterialPageRoute(
         builder: (_) => EditExpenseView(
@@ -110,8 +165,10 @@ Future<void> _openEditExpense(ExpenseModel item) async {
     );
 
     if (!mounted || result == null) return;
+
     setState(() {});
   }
+
   Future<void> _onItemAction(ExpenseModel item) async {
     final action = await showModalBottomSheet<String>(
       context: context,
@@ -120,12 +177,18 @@ Future<void> _openEditExpense(ExpenseModel item) async {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.edit_outlined, color: AppTheme.primaryDark),
+              leading: const Icon(
+                Icons.edit_outlined,
+                color: AppTheme.primaryDark,
+              ),
               title: const Text('Sửa giao dịch chi tiêu'),
               onTap: () => Navigator.of(ctx).pop('edit'),
             ),
             ListTile(
-              leading: const Icon(Icons.delete_outline, color: AppTheme.errorColor),
+              leading: const Icon(
+                Icons.delete_outline,
+                color: AppTheme.errorColor,
+              ),
               title: const Text(
                 'Xóa giao dịch chi tiêu',
                 style: TextStyle(color: AppTheme.errorColor),
@@ -138,13 +201,16 @@ Future<void> _openEditExpense(ExpenseModel item) async {
     );
 
     if (!mounted || action == null) return;
+
     if (action == 'delete') {
       final ok = await _controller.deleteExpense(
         item.id,
         month: _selectedMonth,
         year: _selectedYear,
       );
+
       if (!mounted) return;
+
       if (ok) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -161,7 +227,7 @@ Future<void> _openEditExpense(ExpenseModel item) async {
         );
       }
     } else if (action == 'edit') {
-        await _openEditExpense(item);
+      await _openEditExpense(item);
     }
   }
 
@@ -171,7 +237,10 @@ Future<void> _openEditExpense(ExpenseModel item) async {
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary),
+          icon: const Icon(
+            Icons.arrow_back,
+            color: AppTheme.textPrimary,
+          ),
           onPressed: () {
             if (Navigator.of(context).canPop()) {
               Navigator.of(context).pop();
@@ -181,7 +250,10 @@ Future<void> _openEditExpense(ExpenseModel item) async {
         title: const Text('Danh Sách Chi Tiêu'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.more_vert, color: AppTheme.textPrimary),
+            icon: const Icon(
+              Icons.more_vert,
+              color: AppTheme.textPrimary,
+            ),
             onPressed: () {},
           ),
           Padding(
@@ -202,8 +274,12 @@ Future<void> _openEditExpense(ExpenseModel item) async {
         listenable: _controller,
         builder: (context, _) {
           final stat = _controller.statistic;
+
           final essentialRate =
-              (double.tryParse(stat.essentialRate) ?? 80).clamp(0, 100) / 100;
+              (double.tryParse(stat.essentialRate) ?? 0)
+                  .clamp(0, 100) /
+              100;
+
           final discretionaryPercent =
               (100 - (essentialRate * 100)).round().clamp(0, 100);
 
@@ -225,7 +301,9 @@ Future<void> _openEditExpense(ExpenseModel item) async {
                           vertical: 8,
                         ),
                         decoration: BoxDecoration(
-                          color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                          color: AppTheme.primaryColor.withValues(
+                            alpha: 0.1,
+                          ),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Row(
@@ -267,9 +345,10 @@ Future<void> _openEditExpense(ExpenseModel item) async {
                     ),
                   ],
                 ),
+
                 const SizedBox(height: 14),
 
-                // Card Tổng chi tiêu tháng + Biểu đồ + Cơ cấu + Thiết yếu/Tùy ý
+                // Card thống kê chi tiêu
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -294,7 +373,9 @@ Future<void> _openEditExpense(ExpenseModel item) async {
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                              color: AppTheme.primaryColor.withValues(
+                                alpha: 0.1,
+                              ),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: const Icon(
@@ -305,7 +386,9 @@ Future<void> _openEditExpense(ExpenseModel item) async {
                           ),
                         ],
                       ),
+
                       const SizedBox(height: 2),
+
                       Text(
                         _formatMoney(stat.totalExpense),
                         style: const TextStyle(
@@ -314,7 +397,9 @@ Future<void> _openEditExpense(ExpenseModel item) async {
                           color: AppTheme.primaryDark,
                         ),
                       ),
+
                       const SizedBox(height: 10),
+
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -325,9 +410,9 @@ Future<void> _openEditExpense(ExpenseModel item) async {
                               color: AppTheme.textSecondary,
                             ),
                           ),
-                          const Text(
-                            'Cao điểm: 10/11',
-                            style: TextStyle(
+                          Text(
+                            'Cao điểm: ${_getPeakExpenseDate(stat.points)}',
+                            style: const TextStyle(
                               fontSize: 11,
                               color: AppTheme.errorColor,
                               fontWeight: FontWeight.w600,
@@ -335,19 +420,34 @@ Future<void> _openEditExpense(ExpenseModel item) async {
                           ),
                         ],
                       ),
+
                       const SizedBox(height: 8),
+
+                      // Biểu đồ lấy dữ liệu thật từ API
                       SizedBox(
                         height: 115,
                         width: double.infinity,
-                        child: CustomPaint(
-                          painter: _ExpenseChartPainter(
-                            lineColor: AppTheme.primaryColor,
-                            peakColor: AppTheme.errorColor,
-                            points: stat.points,
-                          ),
-                        ),
+                        child: stat.points.isEmpty
+                            ? const Center(
+                                child: Text(
+                                  'Chưa có dữ liệu biểu đồ',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: AppTheme.textSecondary,
+                                  ),
+                                ),
+                              )
+                            : CustomPaint(
+                                painter: _ExpenseChartPainter(
+                                  lineColor: AppTheme.primaryColor,
+                                  peakColor: AppTheme.errorColor,
+                                  points: stat.points,
+                                ),
+                              ),
                       ),
+
                       const SizedBox(height: 10),
+
                       Row(
                         children: [
                           Container(
@@ -369,7 +469,12 @@ Future<void> _openEditExpense(ExpenseModel item) async {
                           ),
                         ],
                       ),
-                      const Divider(height: 20, color: AppTheme.borderColor),
+
+                      const Divider(
+                        height: 20,
+                        color: AppTheme.borderColor,
+                      ),
+
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -390,7 +495,9 @@ Future<void> _openEditExpense(ExpenseModel item) async {
                           ),
                         ],
                       ),
+
                       const SizedBox(height: 8),
+
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
@@ -401,7 +508,9 @@ Future<void> _openEditExpense(ExpenseModel item) async {
                               vertical: 5,
                             ),
                             decoration: BoxDecoration(
-                              color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                              color: AppTheme.primaryColor.withValues(
+                                alpha: 0.1,
+                              ),
                               borderRadius: BorderRadius.circular(14),
                             ),
                             child: Row(
@@ -429,20 +538,27 @@ Future<void> _openEditExpense(ExpenseModel item) async {
                           );
                         }).toList(),
                       ),
+
                       const SizedBox(height: 12),
+
                       ClipRRect(
                         borderRadius: BorderRadius.circular(6),
                         child: LinearProgressIndicator(
                           value: essentialRate,
                           minHeight: 7,
                           backgroundColor:
-                              AppTheme.primaryColor.withValues(alpha: 0.12),
-                          valueColor: const AlwaysStoppedAnimation<Color>(
+                              AppTheme.primaryColor.withValues(
+                            alpha: 0.12,
+                          ),
+                          valueColor:
+                              const AlwaysStoppedAnimation<Color>(
                             AppTheme.primaryDark,
                           ),
                         ),
                       ),
+
                       const SizedBox(height: 6),
+
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -467,6 +583,7 @@ Future<void> _openEditExpense(ExpenseModel item) async {
                     ],
                   ),
                 ),
+
                 const SizedBox(height: 18),
 
                 // Tiêu đề danh sách
@@ -483,22 +600,56 @@ Future<void> _openEditExpense(ExpenseModel item) async {
                     ),
                     Text(
                       'Nhấn để Sửa / Xóa',
-                      style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: AppTheme.textSecondary,
+                      ),
                     ),
                   ],
                 ),
+
                 const SizedBox(height: 10),
 
                 if (_controller.isLoading)
                   const Padding(
                     padding: EdgeInsets.symmetric(vertical: 24),
-                    child: Center(child: CircularProgressIndicator()),
+                    child: Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  )
+                else if (_controller.errorMessage != null)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 24),
+                    child: Center(
+                      child: Text(
+                        _controller.errorMessage!,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppTheme.errorColor,
+                        ),
+                      ),
+                    ),
+                  )
+                else if (_controller.expenses.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 24),
+                    child: Center(
+                      child: Text(
+                        'Chưa có giao dịch chi tiêu trong tháng này',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
+                    ),
                   )
                 else
                   ..._controller.expenses.map((item) {
-                    final title = (item.description?.isNotEmpty == true)
-                        ? item.description!
-                        : item.categoryName;
+                    final title =
+                        (item.description?.isNotEmpty == true)
+                            ? item.description!
+                            : item.categoryName;
 
                     return InkWell(
                       onTap: () => _onItemAction(item),
@@ -509,7 +660,9 @@ Future<void> _openEditExpense(ExpenseModel item) async {
                         decoration: BoxDecoration(
                           color: AppTheme.cardColor,
                           borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: AppTheme.borderColor),
+                          border: Border.all(
+                            color: AppTheme.borderColor,
+                          ),
                         ),
                         child: Row(
                           children: [
@@ -517,7 +670,9 @@ Future<void> _openEditExpense(ExpenseModel item) async {
                               width: 44,
                               height: 44,
                               decoration: BoxDecoration(
-                                color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                                color: AppTheme.primaryColor.withValues(
+                                  alpha: 0.1,
+                                ),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Icon(
@@ -526,10 +681,13 @@ Future<void> _openEditExpense(ExpenseModel item) async {
                                 size: 21,
                               ),
                             ),
+
                             const SizedBox(width: 12),
+
                             Expanded(
                               child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                                crossAxisAlignment:
+                                    CrossAxisAlignment.start,
                                 children: [
                                   Text(
                                     title,
@@ -541,18 +699,22 @@ Future<void> _openEditExpense(ExpenseModel item) async {
                                       color: AppTheme.textPrimary,
                                     ),
                                   ),
+
                                   const SizedBox(height: 5),
+
                                   Row(
                                     children: [
                                       Container(
-                                        padding: const EdgeInsets.symmetric(
+                                        padding:
+                                            const EdgeInsets.symmetric(
                                           horizontal: 8,
                                           vertical: 2,
                                         ),
                                         decoration: BoxDecoration(
                                           color: AppTheme.primaryColor
                                               .withValues(alpha: 0.12),
-                                          borderRadius: BorderRadius.circular(8),
+                                          borderRadius:
+                                              BorderRadius.circular(8),
                                         ),
                                         child: Text(
                                           item.categoryName,
@@ -563,9 +725,13 @@ Future<void> _openEditExpense(ExpenseModel item) async {
                                           ),
                                         ),
                                       ),
+
                                       const SizedBox(width: 8),
+
                                       Text(
-                                        _formatDisplayDate(item.transactionDate),
+                                        _formatDisplayDate(
+                                          item.transactionDate,
+                                        ),
                                         style: const TextStyle(
                                           fontSize: 11,
                                           color: AppTheme.textSecondary,
@@ -576,7 +742,9 @@ Future<void> _openEditExpense(ExpenseModel item) async {
                                 ],
                               ),
                             ),
+
                             const SizedBox(width: 8),
+
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
@@ -606,6 +774,7 @@ Future<void> _openEditExpense(ExpenseModel item) async {
           );
         },
       ),
+
       bottomNavigationBar: SafeArea(
         child: Container(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
@@ -635,50 +804,122 @@ class _ExpenseChartPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final topPad = 12.0;
-    final bottomPad = 20.0;
-    final h = (size.height - topPad - bottomPad).clamp(16.0, size.height);
+    if (points.isEmpty || size.width <= 0 || size.height <= 0) {
+      return;
+    }
 
+    const topPad = 12.0;
+    const bottomPad = 22.0;
+
+    final chartHeight = size.height - topPad - bottomPad;
+
+    if (chartHeight <= 0) return;
+
+    // Chuyển dữ liệu API thành số.
+    final values = points.map((point) {
+      return double.tryParse(
+            point.amount.replaceAll(',', '').trim(),
+          ) ??
+          0.0;
+    }).toList();
+
+    final maxValue = values.reduce(
+      (a, b) => a > b ? a : b,
+    );
+
+    final minValue = values.reduce(
+      (a, b) => a < b ? a : b,
+    );
+
+    final valueRange = maxValue - minValue;
+    final effectiveRange = valueRange == 0 ? 1.0 : valueRange;
+
+    // Vẽ các đường lưới ngang.
     final gridPaint = Paint()
       ..color = AppTheme.borderColor.withValues(alpha: 0.6)
       ..strokeWidth = 1;
+
     for (int i = 0; i < 3; i++) {
-      final y = topPad + (h / 2) * i;
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
+      final y = topPad + (chartHeight / 2) * i;
+
+      canvas.drawLine(
+        Offset(0, y),
+        Offset(size.width, y),
+        gridPaint,
+      );
     }
 
-    final rawPoints = <Offset>[
-      Offset(0.02 * size.width, topPad + h * 0.65),
-      Offset(0.22 * size.width, topPad + h * 0.30),
-      Offset(0.42 * size.width, topPad + h * 0.52),
-      Offset(0.62 * size.width, topPad + h * 0.28),
-      Offset(0.81 * size.width, topPad + h * 0.48),
-      Offset(0.98 * size.width, topPad + h * 0.68),
-    ];
+    // Tạo tọa độ từ dữ liệu thật.
+    final rawPoints = <Offset>[];
 
-    final path = Path()..moveTo(rawPoints.first.dx, rawPoints.first.dy);
-    for (int i = 0; i < rawPoints.length - 1; i++) {
-      final p0 = rawPoints[i];
-      final p1 = rawPoints[i + 1];
-      final midX = (p0.dx + p1.dx) / 2;
-      path.cubicTo(midX, p0.dy, midX, p1.dy, p1.dx, p1.dy);
+    for (int i = 0; i < values.length; i++) {
+      final x = values.length == 1
+          ? size.width / 2
+          : i * size.width / (values.length - 1);
+
+      final normalizedValue =
+          (values[i] - minValue) / effectiveRange;
+
+      final y = topPad + chartHeight * (1 - normalizedValue);
+
+      rawPoints.add(Offset(x, y));
     }
 
+    // Vẽ đường biểu đồ.
+    final path = Path()
+      ..moveTo(
+        rawPoints.first.dx,
+        rawPoints.first.dy,
+      );
+
+    for (int i = 1; i < rawPoints.length; i++) {
+      final previous = rawPoints[i - 1];
+      final current = rawPoints[i];
+
+      final midX = (previous.dx + current.dx) / 2;
+
+      path.cubicTo(
+        midX,
+        previous.dy,
+        midX,
+        current.dy,
+        current.dx,
+        current.dy,
+      );
+    }
+
+    // Vẽ vùng màu phía dưới đường biểu đồ.
     final fillPath = Path.from(path)
-      ..lineTo(rawPoints.last.dx, topPad + h)
-      ..lineTo(rawPoints.first.dx, topPad + h)
+      ..lineTo(
+        rawPoints.last.dx,
+        topPad + chartHeight,
+      )
+      ..lineTo(
+        rawPoints.first.dx,
+        topPad + chartHeight,
+      )
       ..close();
+
     final fillPaint = Paint()
       ..shader = LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
         colors: [
           lineColor.withValues(alpha: 0.16),
-          lineColor.withValues(alpha: 0.0),
+          lineColor.withValues(alpha: 0),
         ],
-      ).createShader(Rect.fromLTWH(0, topPad, size.width, h));
+      ).createShader(
+        Rect.fromLTWH(
+          0,
+          topPad,
+          size.width,
+          chartHeight,
+        ),
+      );
+
     canvas.drawPath(fillPath, fillPaint);
 
+    // Vẽ đường chính.
     canvas.drawPath(
       path,
       Paint()
@@ -687,33 +928,80 @@ class _ExpenseChartPainter extends CustomPainter {
         ..style = PaintingStyle.stroke,
     );
 
-    for (int i = 1; i < rawPoints.length - 1; i++) {
-      final pt = rawPoints[i];
-      final isPeak = i == 3;
-      canvas.drawCircle(pt, 4.5, Paint()..color = isPeak ? peakColor : lineColor);
-      canvas.drawCircle(pt, 2.0, Paint()..color = Colors.white);
+    // Tìm điểm chi tiêu cao nhất.
+    int peakIndex = 0;
+
+    for (int i = 1; i < values.length; i++) {
+      if (values[i] > values[peakIndex]) {
+        peakIndex = i;
+      }
     }
 
-    const labels = ['01/11', '05/11', '10/11', '15/11', '20/11', '30/11'];
-    final stepX = size.width / (labels.length - 1);
-    final tp = TextPainter(textDirection: TextDirection.ltr);
-    for (int i = 0; i < labels.length; i++) {
-      tp.text = TextSpan(
-        text: labels[i],
-        style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary),
+    // Vẽ các điểm dữ liệu.
+    for (int i = 0; i < rawPoints.length; i++) {
+      final point = rawPoints[i];
+      final isPeak = i == peakIndex;
+
+      canvas.drawCircle(
+        point,
+        isPeak ? 5 : 3.5,
+        Paint()..color = isPeak ? peakColor : lineColor,
       );
-      tp.layout();
-      final dx = (i * stepX - tp.width / 2).clamp(
-        0.0,
-        (size.width - tp.width).clamp(0.0, size.width),
+
+      canvas.drawCircle(
+        point,
+        1.8,
+        Paint()..color = Colors.white,
       );
-      tp.paint(canvas, Offset(dx, size.height - 14));
+    }
+
+    // Hiển thị nhãn ngày lấy từ API.
+    final labelIndexes = <int>{0};
+
+    if (points.length > 2) {
+      labelIndexes.add(points.length ~/ 2);
+    }
+
+    if (points.length > 1) {
+      labelIndexes.add(points.length - 1);
+    }
+
+    final textPainter = TextPainter(
+      textDirection: TextDirection.ltr,
+    );
+
+    for (final index in labelIndexes) {
+      final date = DateTime.tryParse(points[index].date);
+
+      if (date == null) continue;
+
+      final label =
+          '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}';
+
+      textPainter.text = TextSpan(
+        text: label,
+        style: const TextStyle(
+          fontSize: 10,
+          color: AppTheme.textSecondary,
+        ),
+      );
+
+      textPainter.layout();
+
+      final dx = (rawPoints[index].dx - textPainter.width / 2)
+          .clamp(0.0, size.width - textPainter.width);
+
+      textPainter.paint(
+        canvas,
+        Offset(dx, size.height - 14),
+      );
     }
   }
 
   @override
-  bool shouldRepaint(covariant _ExpenseChartPainter oldDelegate) =>
-      oldDelegate.lineColor != lineColor ||
-      oldDelegate.peakColor != peakColor ||
-      oldDelegate.points != points;
+  bool shouldRepaint(covariant _ExpenseChartPainter oldDelegate) {
+    return oldDelegate.lineColor != lineColor ||
+        oldDelegate.peakColor != peakColor ||
+        oldDelegate.points != points;
+  }
 }
