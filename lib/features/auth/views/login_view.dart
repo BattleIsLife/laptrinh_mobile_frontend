@@ -56,7 +56,7 @@ class _LoginViewState extends State<LoginView> {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) =>
-           const ExpenseListView()
+           const IncomeListView()
       ),
     );
   }
@@ -324,7 +324,7 @@ class _LoginViewState extends State<LoginView> {
           const SizedBox(height: 8),
           const Text(
             '• Email: student@example.com\n'
-            '• Mật khẩu: example-password (hoặc bất kỳ >= 6 ký tự)\n'
+            '• Mật khẩu: example-password (hoặc bất kỳ >= 8 ký tự)\n'
             '• Mật khẩu thử lỗi sai: wrong\n'
             '• Email thử lỗi mạng: network_error@example.com',
             style: TextStyle(

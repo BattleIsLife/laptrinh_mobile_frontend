@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_button.dart';
@@ -18,6 +19,8 @@ class _IncomeListViewState extends State<IncomeListView> {
   final IncomeController _controller = IncomeController();
   final DateTime _now = DateTime.now();
 
+  final ScrollController _scrollController = ScrollController();
+
   late int _selectedMonth;
   late int _selectedYear;
 
@@ -28,59 +31,82 @@ class _IncomeListViewState extends State<IncomeListView> {
     _selectedMonth = _now.month;
     _selectedYear = _now.year;
 
+    // Lắng nghe sự kiện cuộn danh sách.
+    _scrollController.addListener(_onScroll);
+
     _controller.loadIncomeData(month: _selectedMonth, year: _selectedYear);
   }
 
   @override
   void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+
     _controller.dispose();
+
     super.dispose();
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+
+    final position = _scrollController.position;
+
+    // Chỉ tải khi người dùng thực sự cuộn xuống.
+    if (position.userScrollDirection == ScrollDirection.reverse &&
+        position.extentAfter < 200) {
+      _controller.loadMoreIncomes(month: _selectedMonth, year: _selectedYear);
+    }
   }
 
   String _formatMoney(String raw) {
     final clean = raw.replaceAll(',', '').trim();
     final val = double.tryParse(clean) ?? 0;
     final intVal = val.truncate().abs();
+
     final formatted = intVal.toString().replaceAllMapped(
       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
       (m) => '${m[1]}.',
     );
+
     return '$formatted đ';
   }
-String _getPeakIncomeDate(List<IncomeChartPoint> chartData) {
-  if (chartData.isEmpty) return 'Chưa có dữ liệu';
 
-  IncomeChartPoint? peakPoint;
-  double maxAmount = 0;
+  String _getPeakIncomeDate(List<IncomeChartPoint> chartData) {
+    if (chartData.isEmpty) return 'Chưa có dữ liệu';
 
-  for (final point in chartData) {
-    final amount = double.tryParse(
-          point.amount.replaceAll(',', '').trim(),
-        ) ??
-        0;
+    IncomeChartPoint? peakPoint;
+    double maxAmount = 0;
 
-    if (peakPoint == null || amount > maxAmount) {
-      maxAmount = amount;
-      peakPoint = point;
+    for (final point in chartData) {
+      final amount =
+          double.tryParse(point.amount.replaceAll(',', '').trim()) ?? 0;
+
+      if (peakPoint == null || amount > maxAmount) {
+        maxAmount = amount;
+        peakPoint = point;
+      }
     }
+
+    if (peakPoint == null || maxAmount <= 0) {
+      return 'Chưa có thu nhập';
+    }
+
+    final date = DateTime.tryParse(peakPoint.date);
+
+    if (date == null) return 'Chưa có dữ liệu';
+
+    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}';
   }
 
-  if (peakPoint == null || maxAmount <= 0) {
-    return 'Chưa có thu nhập';
-  }
-
-  final date = DateTime.tryParse(peakPoint.date);
-
-  if (date == null) return 'Chưa có dữ liệu';
-
-  return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}';
-}
   String _formatDisplayDate(String rawDate) {
     final trimmed = rawDate.trim();
     final parts = trimmed.split('-');
+
     if (parts.length == 3 && parts[0].length == 4) {
       return '${parts[2]}/${parts[1]}/${parts[0]}';
     }
+
     return trimmed;
   }
 
@@ -143,6 +169,7 @@ String _getPeakIncomeDate(List<IncomeChartPoint> chartData) {
       _selectedYear = picked.year;
     });
 
+    // Khi đổi tháng/năm, tải lại từ page = 0.
     await _controller.loadIncomeData(
       month: _selectedMonth,
       year: _selectedYear,
@@ -192,11 +219,12 @@ String _getPeakIncomeDate(List<IncomeChartPoint> chartData) {
           final totalIncomeText = _formatMoney(stat?.totalIncome ?? '0');
 
           return SingleChildScrollView(
+            controller: _scrollController,
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Hàng chọn tháng + nút Thêm mới
+                // Hàng chọn tháng + nút Thêm mới.
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -251,9 +279,10 @@ String _getPeakIncomeDate(List<IncomeChartPoint> chartData) {
                     ),
                   ],
                 ),
+
                 const SizedBox(height: 14),
 
-                // Card Tổng thu nhập + Biểu đồ + Cơ cấu
+                // Card Tổng thu nhập + Biểu đồ + Cơ cấu.
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -400,6 +429,7 @@ String _getPeakIncomeDate(List<IncomeChartPoint> chartData) {
                           runSpacing: 8,
                           children: structure.entries.map((e) {
                             final c = _typeColor(e.key);
+
                             return Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 10,
@@ -439,9 +469,10 @@ String _getPeakIncomeDate(List<IncomeChartPoint> chartData) {
                     ],
                   ),
                 ),
+
                 const SizedBox(height: 18),
 
-                // Tiêu đề lịch sử thu nhập
+                // Tiêu đề lịch sử thu nhập.
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: const [
@@ -462,6 +493,7 @@ String _getPeakIncomeDate(List<IncomeChartPoint> chartData) {
                     ),
                   ],
                 ),
+
                 const SizedBox(height: 10),
 
                 if (_controller.isLoading)
@@ -498,6 +530,7 @@ String _getPeakIncomeDate(List<IncomeChartPoint> chartData) {
                     final formattedDate = _formatDisplayDate(
                       item.transactionDate,
                     );
+
                     final subtitle = item.description?.isNotEmpty == true
                         ? '$formattedDate • ${item.description}'
                         : formattedDate;
@@ -625,6 +658,48 @@ String _getPeakIncomeDate(List<IncomeChartPoint> chartData) {
                       ),
                     );
                   }),
+
+                // Hiển thị trạng thái tải thêm ở cuối danh sách.
+                if (_controller.isLoadingMore)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 20),
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CircularProgressIndicator(),
+                          SizedBox(height: 8),
+                          Text('Đang tải thêm giao dịch...'),
+                        ],
+                      ),
+                    ),
+                  )
+                else if (!_controller.hasMore && items.isNotEmpty)
+                  const Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Center(
+                      child: Text(
+                        'Bạn đã xem hết giao dịch',
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+
+                // Hiển thị lỗi nếu tải thêm thất bại.
+                if (_controller.errorMessage != null &&
+                    items.isNotEmpty &&
+                    !_controller.isLoading)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Text(
+                      _controller.errorMessage!,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppTheme.errorColor,
+                      ),
+                    ),
+                  ),
               ],
             ),
           );
@@ -653,6 +728,7 @@ String _getPeakIncomeDate(List<IncomeChartPoint> chartData) {
     ).push<dynamic>(MaterialPageRoute(builder: (_) => const AddIncomeView()));
 
     if (!mounted || result == null) return;
+
     await _controller.loadIncomeData(
       month: _selectedMonth,
       year: _selectedYear,
@@ -665,6 +741,7 @@ String _getPeakIncomeDate(List<IncomeChartPoint> chartData) {
     );
 
     if (!mounted || result == null) return;
+
     await _controller.loadIncomeData(
       month: _selectedMonth,
       year: _selectedYear,
@@ -694,6 +771,7 @@ class _SimpleChartPainter extends CustomPainter {
     const bottomPad = 22.0;
 
     final chartHeight = size.height - topPad - bottomPad;
+
     final stepX = chartData.length > 1
         ? size.width / (chartData.length - 1)
         : 0.0;
@@ -731,7 +809,6 @@ class _SimpleChartPainter extends CustomPainter {
     // Vẽ các điểm dữ liệu.
     for (final point in points) {
       canvas.drawCircle(point, 4, Paint()..color = color);
-
       canvas.drawCircle(point, 1.8, Paint()..color = Colors.white);
     }
 
