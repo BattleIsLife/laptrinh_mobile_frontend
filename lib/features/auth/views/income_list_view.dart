@@ -660,18 +660,22 @@ class _IncomeListViewState extends State<IncomeListView> {
                   }),
 
                 // Hiển thị trạng thái tải thêm ở cuối danh sách.
+             
                 if (_controller.isLoadingMore)
                   const Padding(
                     padding: EdgeInsets.symmetric(vertical: 20),
-                    child: Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          CircularProgressIndicator(),
-                          SizedBox(height: 8),
-                          Text('Đang tải thêm giao dịch...'),
-                        ],
-                      ),
+                    child: Column(
+                      children: [
+                        CircularProgressIndicator(),
+                        SizedBox(height: 10),
+                        Text(
+                          'Đang tải thêm giao dịch...',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppTheme.textSecondary,
+                          ),
+                        ),
+                      ],
                     ),
                   )
                 else if (!_controller.hasMore && items.isNotEmpty)

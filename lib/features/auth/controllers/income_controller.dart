@@ -134,8 +134,8 @@ class IncomeController extends ChangeNotifier {
 
     final nextPage = _currentPage + 1;
 
-// Giả lập thời gian tải dữ liệu 1 giây
-await Future.delayed(const Duration(milliseconds: 1000));
+// Giả lập thời gian tải dữ liệu 1.5 giây
+await Future.delayed(const Duration(milliseconds: 1500));
     try {
       final listResult = await _incomeService.getIncomes(
         page: nextPage,
