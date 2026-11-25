@@ -4,7 +4,6 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_button.dart';
 import '../controllers/auth_controller.dart';
 import 'assets_view.dart';
-import 'credit_accounts_view.dart';
 
 /// Simple welcome / home screen displayed upon successful authentication.
 class WelcomeView extends StatelessWidget {
@@ -113,67 +112,7 @@ class WelcomeView extends StatelessWidget {
                       ),
                       const SizedBox(height: 24),
 
-                      // Feature Entry 1: Quản lý tài khoản tín dụng
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: AppTheme.primaryColor.withValues(alpha: 0.06),
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: AppTheme.primaryColor.withValues(alpha: 0.2),
-                          ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            const Row(
-                              children: [
-                                Icon(
-                                  Icons.credit_card,
-                                  color: AppTheme.primaryColor,
-                                ),
-                                SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    'Quản lý tài khoản tín dụng',
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppTheme.primaryColor,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 6),
-                            const Text(
-                              'Xem danh sách tài khoản, thêm, sửa, đóng tài khoản và tạo yêu cầu mở tín dụng.',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: AppTheme.textSecondary,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            AppButton(
-                              text: 'Tài khoản tín dụng',
-                              icon: Icons.arrow_forward,
-                              onPressed: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => CreditAccountsView(
-                                      token: controller.token,
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      // Feature Entry 2: Quản lý tài sản
+                      // Feature Entry: Quản lý tài sản
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
