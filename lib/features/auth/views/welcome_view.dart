@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_theme.dart';
-import '../../../core/widgets/app_button.dart';
 import '../controllers/auth_controller.dart';
-import 'assets_view.dart';
 
 /// Simple welcome / home screen displayed upon successful authentication.
 class WelcomeView extends StatelessWidget {
@@ -111,67 +109,6 @@ class WelcomeView extends StatelessWidget {
                             : 'Không có',
                       ),
                       const SizedBox(height: 24),
-
-                      // Feature Entry: Quản lý tài sản
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF10B981).withValues(alpha: 0.06),
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: const Color(0xFF10B981).withValues(alpha: 0.25),
-                          ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            const Row(
-                              children: [
-                                Icon(
-                                  Icons.account_balance_wallet_rounded,
-                                  color: Color(0xFF10B981),
-                                ),
-                                SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    'Quản lý tài sản cá nhân',
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF047857),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 6),
-                            const Text(
-                              'Theo dõi bất động sản, xe cộ, vàng, chứng khoán, tiền mặt và tài sản khác.',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: AppTheme.textSecondary,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            AppButton(
-                              text: 'Danh mục tài sản',
-                              icon: Icons.arrow_forward,
-                              backgroundColor: const Color(0xFF10B981),
-                              onPressed: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => AssetsView(
-                                      token: controller.token,
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 20),
 
                       // Logout Button
                       OutlinedButton.icon(
