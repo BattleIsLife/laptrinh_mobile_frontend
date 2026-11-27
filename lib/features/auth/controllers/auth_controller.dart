@@ -2,6 +2,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../../../core/network/api_client.dart';
+import '../models/forgot_password_model.dart';
 import '../models/user.dart';
 import '../services/auth_service.dart';
 
@@ -11,6 +12,7 @@ class AuthController extends ChangeNotifier {
 
   bool _isLoading = false;
   String? _errorMessage;
+  String? _successMessage;
   User? _currentUser;
   String? _token;
 
@@ -20,6 +22,7 @@ class AuthController extends ChangeNotifier {
   // Getters
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+  String? get successMessage => _successMessage;
   User? get currentUser => _currentUser;
   String? get token => _token;
   bool get isAuthenticated => _currentUser != null && _token != null;
@@ -246,12 +249,166 @@ static int getPasswordStrength(String? value) {
   }
 
   // =========================
+  // FORGOT PASSWORD (GET OTP & RESET)
+  // =========================
+
+  /// Gửi yêu cầu cấp mã OTP về email (POST /api/auth/get_otp).
+  Future<bool> sendOtp({required String email}) async {
+    final cleanEmail = email.trim();
+    if (cleanEmail.isEmpty) {
+      _errorMessage = 'Vui lòng nhập email';
+      _successMessage = null;
+      notifyListeners();
+      return false;
+    }
+
+    _isLoading = true;
+    _errorMessage = null;
+    _successMessage = null;
+    notifyListeners();
+
+    try {
+      final request = ForgotPasswordModel(email: cleanEmail);
+      final message = await _authService.getOtp(request: request);
+
+      _isLoading = false;
+      _successMessage = message;
+      notifyListeners();
+      return true;
+    } on ApiException catch (e) {
+      _errorMessage = e.message;
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _errorMessage = 'Không thể kết nối đến máy chủ. Vui lòng thử lại.';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Kiểm tra mã OTP hợp lệ trước khi cho phép sang bước đặt mật khẩu mới.
+  Future<bool> verifyOtp({
+    required String email,
+    required String otp,
+  }) async {
+    final cleanOtp = otp.trim();
+    if (cleanOtp.isEmpty) {
+      _errorMessage = 'Vui lòng nhập mã OTP';
+      _successMessage = null;
+      notifyListeners();
+      return false;
+    }
+
+    if (!RegExp(r'^[0-9]{6}$').hasMatch(cleanOtp)) {
+      _errorMessage = 'Mã OTP phải gồm đúng 6 chữ số';
+      _successMessage = null;
+      notifyListeners();
+      return false;
+    }
+
+    _isLoading = true;
+    _errorMessage = null;
+    _successMessage = null;
+    notifyListeners();
+
+    try {
+      await _authService.verifyOtp(email: email.trim(), otp: cleanOtp);
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } on ApiException catch (e) {
+      _errorMessage = e.message;
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _errorMessage = 'Không thể kiểm tra OTP. Vui lòng thử lại.';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Đặt lại mật khẩu mới với mã OTP (POST /api/auth/reset_password).
+  Future<bool> resetPassword({
+    required String email,
+    required String otp,
+    required String password,
+    required String confirmPassword,
+  }) async {
+    final cleanEmail = email.trim();
+    final cleanOtp = otp.trim();
+
+    if (cleanEmail.isEmpty) {
+      _errorMessage = 'Vui lòng nhập email';
+      _successMessage = null;
+      notifyListeners();
+      return false;
+    }
+
+    if (cleanOtp.isEmpty) {
+      _errorMessage = 'Vui lòng nhập mã OTP';
+      _successMessage = null;
+      notifyListeners();
+      return false;
+    }
+
+    final passwordError = validatePassword(password);
+    if (passwordError != null) {
+      _errorMessage = passwordError;
+      _successMessage = null;
+      notifyListeners();
+      return false;
+    }
+
+    if (password != confirmPassword) {
+      _errorMessage = 'Mật khẩu không khớp';
+      _successMessage = null;
+      notifyListeners();
+      return false;
+    }
+
+    _isLoading = true;
+    _errorMessage = null;
+    _successMessage = null;
+    notifyListeners();
+
+    try {
+      final request = ForgotPasswordModel(
+        email: cleanEmail,
+        otp: cleanOtp,
+        password: password,
+        confirmPassword: confirmPassword,
+      );
+      final message = await _authService.resetPassword(request: request);
+
+      _isLoading = false;
+      _successMessage = message;
+      notifyListeners();
+      return true;
+    } on ApiException catch (e) {
+      _errorMessage = e.message;
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _errorMessage = 'Không thể kết nối đến máy chủ. Vui lòng thử lại.';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // =========================
   // CLEAR ERROR
   // =========================
 
   void clearError() {
-    if (_errorMessage != null) {
+    if (_errorMessage != null || _successMessage != null) {
       _errorMessage = null;
+      _successMessage = null;
       notifyListeners();
     }
   }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../controllers/auth_controller.dart';
+import '../forgot_pass_view.dart';
 
 /// Reusable login form component managing form inputs, validation,
 /// and password visibility.
@@ -212,7 +213,14 @@ class _LoginFormState extends State<LoginForm> {
                 onPressed: isLoading
                     ? null
                     : () {
-                        // TODO: Xử lý sự kiện quên mật khẩu
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ForgotPasswordView(
+                              controller: widget.controller,
+                            ),
+                          ),
+                        );
                       },
                 style: TextButton.styleFrom(padding: EdgeInsets.zero),
                 child: const Text(

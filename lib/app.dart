@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'core/theme/app_theme.dart';
+import 'features/auth/controllers/auth_controller.dart';
+import 'features/auth/services/auth_service.dart';
 import 'features/auth/views/login_view.dart';
 import 'features/auth/views/income_list_view.dart';
 import 'features/auth/views/expense_list_view.dart';
@@ -14,7 +16,11 @@ class App extends StatelessWidget {
       title: 'Flutter Auth MVC',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      home: const LoginView(),
+      home: LoginView(
+        controller: AuthController(
+          authService: MockAuthService(),
+        ),
+      )
     );
   }
 }
