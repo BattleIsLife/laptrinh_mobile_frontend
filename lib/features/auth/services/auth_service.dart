@@ -7,11 +7,7 @@ import '../models/user.dart';
 
 /// Contract for authentication operations.
 abstract class AuthService {
-  factory AuthService({ApiClient? apiClient, bool? useMock}) {
-    final shouldUseMock = useMock ?? ApiConfig.useMockService;
-    if (shouldUseMock) {
-      return MockAuthService();
-    }
+  factory AuthService({ApiClient? apiClient}) {
     return HttpAuthService(apiClient: apiClient);
   }
 
@@ -29,7 +25,7 @@ abstract class AuthService {
   /// Gửi mã OTP về email người dùng (POST /api/auth/get_otp).
   Future<String> getOtp({required ForgotPasswordModel request});
 
-  /// Kiểm tra mã OTP hợp lệ trước khi sang bước đặt mật khẩu mới.
+  /// Kiểm tra định dạng mã OTP hợp lệ trước khi sang bước đặt mật khẩu mới.
   Future<void> verifyOtp({required String email, required String otp});
 
   /// Đặt lại mật khẩu mới bằng email + OTP (POST /api/auth/reset_password).
@@ -85,7 +81,7 @@ class HttpAuthService implements AuthService {
 
   @override
   Future<void> verifyOtp({required String email, required String otp}) async {
-    // Tài liệu API backend kiểm tra OTP trực tiếp ở /api/auth/reset_password,
+    // API backend kiểm tra OTP trực tiếp ở /api/auth/reset_password,
     // nên ở client kiểm tra đúng định dạng 6 chữ số trước khi sang bước đổi mật khẩu.
     if (!RegExp(r'^[0-9]{6}$').hasMatch(otp.trim())) {
       throw ApiException('Mã OTP phải gồm đúng 6 chữ số', statusCode: 400);
@@ -99,89 +95,5 @@ class HttpAuthService implements AuthService {
       body: request.toResetPasswordJson(),
     );
     return response['message'] as String? ?? 'Đã đổi mật khẩu thành công!!';
-  }
-}
-
-/// Mock service dùng để test giao diện offline mà không cần bật backend Node.js.
-class MockAuthService implements AuthService {
-  final Duration simulatedDelay;
-
-  MockAuthService({this.simulatedDelay = const Duration(milliseconds: 400)});
-
-  @override
-  Future<AuthResult> login({
-    required String email,
-    required String password,
-  }) async {
-    await Future.delayed(simulatedDelay);
-    return AuthResult(
-      token: 'mock_jwt_token_123456',
-      user: User(id: 1, name: 'Mock User', email: email),
-    );
-  }
-
-  @override
-  Future<void> register({
-    required String fullName,
-    required String email,
-    required String phone,
-    required String password,
-  }) async {
-    await Future.delayed(simulatedDelay);
-  }
-
-  @override
-  Future<String> getOtp({required ForgotPasswordModel request}) async {
-    await Future.delayed(simulatedDelay);
-
-    if (request.email.trim().isEmpty) {
-      throw ApiException('Vui lòng nhập email', statusCode: 401);
-    }
-
-    // Giả lập trường hợp email chưa đăng ký để test lỗi
-    if (request.email.trim() == 'notfound@email.com') {
-      throw ApiException(
-        'Email này chưa được liên kết với tài khoản nào',
-        statusCode: 401,
-      );
-    }
-
-    return 'Đã sinh ra mã OTP';
-  }
-
-  @override
-  Future<void> verifyOtp({required String email, required String otp}) async {
-    await Future.delayed(simulatedDelay);
-
-    if (otp.trim() != '999999') {
-      throw ApiException(
-        'OTP của bạn đã hết hạn hoặc không hợp lệ',
-        statusCode: 401,
-      );
-    }
-  }
-
-  @override
-  Future<String> resetPassword({required ForgotPasswordModel request}) async {
-    await Future.delayed(simulatedDelay);
-
-    if (request.email.trim().isEmpty) {
-      throw ApiException('Vui lòng nhập email', statusCode: 401);
-    }
-
-    if (request.password.isEmpty ||
-        request.password != request.confirmPassword) {
-      throw ApiException('Mật khẩu không khớp', statusCode: 401);
-    }
-
-    // Mã OTP mẫu hợp lệ là 999999 (giống trong tài liệu API)
-    if (request.otp.trim() != '999999') {
-      throw ApiException(
-        'OTP của bạn đã hết hạn hoặc không hợp lệ',
-        statusCode: 401,
-      );
-    }
-
-    return 'Đã đổi mật khẩu thành công!!';
   }
 }

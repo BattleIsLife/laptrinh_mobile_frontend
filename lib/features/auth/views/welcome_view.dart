@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../controllers/auth_controller.dart';
+import '../../credit_account/views/credit_accounts_view.dart';
 
 /// Simple welcome / home screen displayed upon successful authentication.
 class WelcomeView extends StatelessWidget {
@@ -109,6 +110,27 @@ class WelcomeView extends StatelessWidget {
                             : 'Không có',
                       ),
                       const SizedBox(height: 24),
+
+                      ElevatedButton.icon(
+                        icon: const Icon(Icons.credit_card),
+                        label: const Text('Quản lý tài khoản tín dụng'),
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 48),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => CreditAccountsView(
+                                token: controller.token,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 12),
 
                       // Logout Button
                       OutlinedButton.icon(
